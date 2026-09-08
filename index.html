@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Heizöl Hirmer – JSONP-Test</title>
+  <title>Heizöl Hirmer – POST-Test V2</title>
 
   <style>
     * {
@@ -93,7 +93,7 @@
     <h1>Heizöl Hirmer</h1>
 
     <p>
-      JSONP-Verbindungstest zwischen GitHub Pages
+      POST-Verbindungstest V2 zwischen GitHub Pages
       und Google Apps Script.
     </p>
 
@@ -111,94 +111,98 @@
     const API_URL =
       'https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec';
 
-    function testConnection() {
-      const button = document.getElementById('testButton');
-      const status = document.getElementById('status');
+    async function testConnection() {
+
+      const button =
+        document.getElementById('testButton');
+
+      const status =
+        document.getElementById('status');
 
       button.disabled = true;
       status.className = '';
       status.textContent = 'Verbindung wird getestet ...';
 
-      const callbackName =
-        '__hirmerJsonp_' +
-        Date.now() +
-        '_' +
-        Math.floor(Math.random() * 100000);
+      try {
 
-      const timeout = setTimeout(function() {
-        cleanup();
-        showError(
-          'Zeitüberschreitung: Apps Script hat keine JSONP-Antwort geliefert.'
-        );
-      }, 12000);
+        const response =
+          await fetch(
+            API_URL,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+              },
+              body: JSON.stringify({
+                action: 'postTestV2',
+                source: 'github-pages',
+                expectedTest: 'GITHUB-POST-TEST-2',
+                timestamp: new Date().toISOString()
+              }),
+              redirect: 'follow',
+              cache: 'no-store'
+            }
+          );
 
-      function cleanup() {
-        clearTimeout(timeout);
+        const text =
+          await response.text();
 
-        if (script && script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
+        let data;
 
         try {
-          delete window[callbackName];
-        } catch (e) {
-          window[callbackName] = undefined;
+          data = JSON.parse(text);
+        } catch (parseError) {
+          throw new Error(
+            'Antwort ist kein JSON.\n\n' +
+            text.substring(0, 700)
+          );
         }
 
-        button.disabled = false;
-      }
-
-      function showError(message) {
-        status.className = 'error';
-        status.innerHTML =
-          '<strong>✗ Verbindung fehlgeschlagen</strong><br><br><pre>' +
-          escapeHtml(message) +
-          '</pre>';
-      }
-
-      window[callbackName] = function(data) {
-        cleanup();
-
-        if (!data || data.success !== true) {
-          showError(
-            data && data.message
-              ? data.message
-              : 'Unbekannte Antwort vom Backend.'
+        if (!response.ok) {
+          throw new Error(
+            'HTTP-Fehler ' +
+            response.status
           );
-          return;
+        }
+
+        if (data.success !== true) {
+          throw new Error(
+            data.message ||
+            'Unbekannte Backend-Antwort.'
+          );
         }
 
         status.className = 'success';
         status.innerHTML =
-          '<strong>✓ JSONP-Verbindung funktioniert!</strong>' +
+          '<strong>✓ POST-Verbindung funktioniert!</strong>' +
           '<br><br>' +
           'Meldung: ' + escapeHtml(data.message || '') +
           '<br>' +
           'Backend: ' + escapeHtml(data.backend || '') +
           '<br>' +
-          'Test: ' + escapeHtml(data.test || '') +
+          'Backend-Testkennung: ' + escapeHtml(data.test || '') +
+          '<br>' +
+          'Frontend-Testkennung: GITHUB-POST-TEST-2' +
           '<br>' +
           'Zeitstempel: ' + escapeHtml(data.timestamp || '');
-      };
 
-      const script = document.createElement('script');
+      } catch (error) {
 
-      script.onerror = function() {
-        cleanup();
-        showError(
-          'Das JSONP-Script konnte nicht geladen werden.'
-        );
-      };
+        console.error(error);
 
-      script.src =
-        API_URL +
-        '?action=connectionTest' +
-        '&callback=' +
-        encodeURIComponent(callbackName) +
-        '&_=' +
-        Date.now();
+        status.className = 'error';
+        status.innerHTML =
+          '<strong>✗ POST-Verbindung fehlgeschlagen</strong>' +
+          '<br><br>' +
+          '<pre>' +
+          escapeHtml(
+            error.message ||
+            String(error)
+          ) +
+          '</pre>';
+      }
 
-      document.head.appendChild(script);
+      button.disabled = false;
     }
 
     function escapeHtml(value) {
