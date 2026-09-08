@@ -3,19 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Heizöl Hirmer – Login-Test</title>
+  <title>Heizöl Hirmer – Sicherer Login-Test</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin:0; padding:24px 14px; font-family:Arial,Helvetica,sans-serif; background:#f5f5f5; color:#222; }
-    .box { max-width:680px; margin:30px auto; background:#fff; border-radius:14px; padding:28px; box-shadow:0 4px 18px rgba(0,0,0,.12); }
+    body {
+      margin: 0;
+      padding: 24px 14px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+    .box {
+      max-width: 680px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 4px 18px rgba(0,0,0,.12);
+    }
     h1 { color:#c40000; margin-top:0; }
-    label { display:block; font-size:18px; font-weight:700; margin:18px 0 8px; }
-    input { width:100%; padding:15px; font-size:18px; border:1px solid #bbb; border-radius:8px; }
-    .check { display:flex; gap:10px; align-items:center; margin:16px 0; font-size:17px; }
+    p { font-size:18px; line-height:1.5; }
+    label {
+      display:block;
+      font-size:18px;
+      font-weight:700;
+      margin:18px 0 8px;
+    }
+    input {
+      width:100%;
+      padding:15px;
+      font-size:18px;
+      border:1px solid #bbb;
+      border-radius:8px;
+    }
+    .check {
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin:16px 0;
+      font-size:17px;
+      font-weight:700;
+    }
     .check input { width:auto; }
-    button { width:100%; border:0; border-radius:8px; padding:17px; background:#c40000; color:#fff; font-size:20px; font-weight:700; margin-top:12px; cursor:pointer; }
+    button {
+      width:100%;
+      border:0;
+      border-radius:8px;
+      padding:17px;
+      background:#c40000;
+      color:#fff;
+      font-size:20px;
+      font-weight:700;
+      margin-top:12px;
+      cursor:pointer;
+    }
     button.secondary { background:#555; }
-    #status { margin-top:22px; padding:16px; background:#eee; border-radius:8px; white-space:pre-wrap; }
+    #status {
+      margin-top:22px;
+      padding:16px;
+      background:#eee;
+      border-radius:8px;
+      white-space:pre-wrap;
+      font-size:17px;
+    }
     .ok { background:#e7f6e7 !important; color:#126412; }
     .err { background:#fde7e7 !important; color:#9b0000; }
     .hidden { display:none; }
@@ -24,16 +74,21 @@
 <body>
   <div class="box">
     <h1>Heizöl Hirmer</h1>
-    <p>Login-/Sitzungstest für die spätere GitHub-App.</p>
+    <p>
+      Sicherer Login-Test über die bereits funktionierende JSONP-Verbindung.
+      Das Klartext-Passwort wird dabei nicht an Google Apps Script übertragen.
+    </p>
 
     <div id="loginArea">
       <label for="password">App-Passwort</label>
       <input id="password" type="password" autocomplete="current-password">
+
       <label class="check">
         <input id="remember" type="checkbox">
         Auf diesem Gerät angemeldet bleiben
       </label>
-      <button onclick="login()">Anmelden</button>
+
+      <button id="loginButton" onclick="login()">Anmelden</button>
     </div>
 
     <div id="loggedArea" class="hidden">
@@ -42,106 +97,416 @@
     </div>
 
     <div id="status">Noch nicht angemeldet.</div>
-
-    <iframe name="authFrame" id="authFrame" class="hidden"></iframe>
-
-    <form id="authForm" class="hidden" method="post" target="authFrame" action="https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec">
-      <input type="hidden" name="action" id="formAction">
-      <input type="hidden" name="password" id="formPassword">
-      <input type="hidden" name="remember" id="formRemember">
-    </form>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec";
-    let token = sessionStorage.getItem('hirmer_token') || localStorage.getItem('hirmer_token') || '';
+    let token =
+      sessionStorage.getItem('hirmer_token') ||
+      localStorage.getItem('hirmer_token') ||
+      '';
 
-    window.addEventListener('message', function(event) {
-      const data = event.data || {};
-      if (typeof data !== 'object') return;
-
-      if (data.success && data.token) {
-        token = data.token;
-        if (document.getElementById('remember').checked) {
-          localStorage.setItem('hirmer_token', token);
-          sessionStorage.removeItem('hirmer_token');
-        } else {
-          sessionStorage.setItem('hirmer_token', token);
-          localStorage.removeItem('hirmer_token');
-        }
-        showLoggedIn('Anmeldung erfolgreich.\nSitzung läuft bis: ' + (data.expiresAt || ''));
-      } else if (data.success === false) {
-        showError(data.message || 'Anmeldung fehlgeschlagen.');
-      }
-    });
-
-    function login() {
-      document.getElementById('formAction').value = 'login';
-      document.getElementById('formPassword').value = document.getElementById('password').value;
-      document.getElementById('formRemember').value = document.getElementById('remember').checked ? 'true' : 'false';
-      document.getElementById('status').className = '';
-      document.getElementById('status').textContent = 'Anmeldung wird geprüft ...';
-      document.getElementById('authForm').submit();
-    }
-
-    function jsonp(action, params={}) {
+    function jsonp(action, params = {}) {
       return new Promise((resolve, reject) => {
-        const cb = '__hirmer_' + Date.now() + '_' + Math.floor(Math.random()*100000);
-        const script = document.createElement('script');
-        const timer = setTimeout(() => cleanup(new Error('Zeitüberschreitung.')), 12000);
+        const cb =
+          '__hirmer_' +
+          Date.now() +
+          '_' +
+          Math.floor(Math.random() * 100000);
+
+        const script =
+          document.createElement('script');
+
+        const timer =
+          setTimeout(
+            () => cleanup(
+              new Error(
+                'Zeitüberschreitung bei der Verbindung.'
+              )
+            ),
+            12000
+          );
 
         function cleanup(err, data) {
           clearTimeout(timer);
-          if (script.parentNode) script.parentNode.removeChild(script);
-          try { delete window[cb]; } catch(e) {}
-          err ? reject(err) : resolve(data);
+
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+
+          try {
+            delete window[cb];
+          } catch (e) {}
+
+          err
+            ? reject(err)
+            : resolve(data);
         }
 
-        window[cb] = data => cleanup(null, data);
+        window[cb] =
+          data =>
+            cleanup(
+              null,
+              data
+            );
 
-        const q = new URLSearchParams({api:'1', action, callback:cb, token, ...params, _:Date.now().toString()});
-        script.src = API_URL + '?' + q.toString();
-        script.onerror = () => cleanup(new Error('API konnte nicht geladen werden.'));
-        document.head.appendChild(script);
+        const query = new URLSearchParams({
+          api: '1',
+          action: action,
+          callback: cb,
+          ...params,
+          _: Date.now().toString()
+        });
+
+        script.src =
+          API_URL +
+          '?' +
+          query.toString();
+
+        script.onerror =
+          () =>
+            cleanup(
+              new Error(
+                'API konnte nicht geladen werden.'
+              )
+            );
+
+        document.head.appendChild(
+          script
+        );
       });
+    }
+
+    async function sha256Hex(text) {
+      const data =
+        new TextEncoder()
+          .encode(text);
+
+      const digest =
+        await crypto.subtle.digest(
+          'SHA-256',
+          data
+        );
+
+      return Array
+        .from(
+          new Uint8Array(digest)
+        )
+        .map(
+          b =>
+            b.toString(16)
+              .padStart(2, '0')
+        )
+        .join('');
+    }
+
+    async function hmacSha256Hex(message, keyText) {
+      const key =
+        await crypto.subtle.importKey(
+          'raw',
+          new TextEncoder()
+            .encode(keyText),
+          {
+            name: 'HMAC',
+            hash: 'SHA-256'
+          },
+          false,
+          ['sign']
+        );
+
+      const signature =
+        await crypto.subtle.sign(
+          'HMAC',
+          key,
+          new TextEncoder()
+            .encode(message)
+        );
+
+      return Array
+        .from(
+          new Uint8Array(signature)
+        )
+        .map(
+          b =>
+            b.toString(16)
+              .padStart(2, '0')
+        )
+        .join('');
+    }
+
+    async function login() {
+      const button =
+        document.getElementById(
+          'loginButton'
+        );
+
+      const password =
+        document.getElementById(
+          'password'
+        ).value;
+
+      const remember =
+        document.getElementById(
+          'remember'
+        ).checked;
+
+      if (!password) {
+        showError(
+          'Bitte das App-Passwort eingeben.'
+        );
+        return;
+      }
+
+      button.disabled = true;
+      setStatus(
+        'Anmeldung wird geprüft ...'
+      );
+
+      try {
+        const challenge =
+          await jsonp(
+            'authChallenge'
+          );
+
+        if (
+          !challenge ||
+          challenge.success !== true
+        ) {
+          throw new Error(
+            challenge &&
+            challenge.message
+              ? challenge.message
+              : 'Challenge konnte nicht geladen werden.'
+          );
+        }
+
+        const verifier =
+          await sha256Hex(
+            String(
+              challenge.salt || ''
+            ) +
+            '|' +
+            password
+          );
+
+        const proof =
+          await hmacSha256Hex(
+            String(
+              challenge.nonce || ''
+            ),
+            verifier
+          );
+
+        const result =
+          await jsonp(
+            'authLogin',
+            {
+              challengeId:
+                challenge.challengeId,
+              proof:
+                proof,
+              remember:
+                remember
+                  ? 'true'
+                  : 'false'
+            }
+          );
+
+        if (
+          !result ||
+          result.success !== true
+        ) {
+          throw new Error(
+            result &&
+            result.message
+              ? result.message
+              : 'Anmeldung fehlgeschlagen.'
+          );
+        }
+
+        token =
+          result.token;
+
+        if (remember) {
+          localStorage.setItem(
+            'hirmer_token',
+            token
+          );
+
+          sessionStorage.removeItem(
+            'hirmer_token'
+          );
+        } else {
+          sessionStorage.setItem(
+            'hirmer_token',
+            token
+          );
+
+          localStorage.removeItem(
+            'hirmer_token'
+          );
+        }
+
+        showLoggedIn(
+          'Anmeldung erfolgreich.\nSitzung läuft bis: ' +
+          (
+            result.expiresAt ||
+            ''
+          )
+        );
+
+      } catch (error) {
+        showError(
+          error.message ||
+          String(error)
+        );
+      }
+
+      button.disabled = false;
     }
 
     async function checkSession() {
       try {
-        const data = await jsonp('sessionCheck');
-        if (!data.success) throw new Error(data.message || 'Sitzung ungültig.');
-        showLoggedIn('Sitzung ist gültig.\nAblauf: ' + (data.expiresAt || ''));
-      } catch (e) {
+        const data =
+          await jsonp(
+            'sessionCheck',
+            {
+              token:
+                token
+            }
+          );
+
+        if (
+          !data ||
+          data.success !== true
+        ) {
+          throw new Error(
+            data &&
+            data.message
+              ? data.message
+              : 'Sitzung ungültig.'
+          );
+        }
+
+        showLoggedIn(
+          'Sitzung ist gültig.\nAblauf: ' +
+          (
+            data.expiresAt ||
+            ''
+          )
+        );
+
+      } catch (error) {
         clearToken();
-        showError(e.message || String(e));
+
+        showError(
+          error.message ||
+          String(error)
+        );
       }
     }
 
     async function logout() {
-      try { await jsonp('logout'); } catch(e) {}
+      try {
+        await jsonp(
+          'logout',
+          {
+            token:
+              token
+          }
+        );
+      } catch (e) {}
+
       clearToken();
-      document.getElementById('loginArea').classList.remove('hidden');
-      document.getElementById('loggedArea').classList.add('hidden');
-      document.getElementById('status').className = '';
-      document.getElementById('status').textContent = 'Abgemeldet.';
+
+      document
+        .getElementById(
+          'loginArea'
+        )
+        .classList
+        .remove(
+          'hidden'
+        );
+
+      document
+        .getElementById(
+          'loggedArea'
+        )
+        .classList
+        .add(
+          'hidden'
+        );
+
+      setStatus(
+        'Abgemeldet.'
+      );
     }
 
     function clearToken() {
       token = '';
-      localStorage.removeItem('hirmer_token');
-      sessionStorage.removeItem('hirmer_token');
+
+      localStorage.removeItem(
+        'hirmer_token'
+      );
+
+      sessionStorage.removeItem(
+        'hirmer_token'
+      );
     }
 
-    function showLoggedIn(msg) {
-      document.getElementById('loginArea').classList.add('hidden');
-      document.getElementById('loggedArea').classList.remove('hidden');
-      document.getElementById('status').className = 'ok';
-      document.getElementById('status').textContent = msg;
+    function showLoggedIn(message) {
+      document
+        .getElementById(
+          'loginArea'
+        )
+        .classList
+        .add(
+          'hidden'
+        );
+
+      document
+        .getElementById(
+          'loggedArea'
+        )
+        .classList
+        .remove(
+          'hidden'
+        );
+
+      const status =
+        document.getElementById(
+          'status'
+        );
+
+      status.className =
+        'ok';
+
+      status.textContent =
+        message;
     }
 
-    function showError(msg) {
-      document.getElementById('status').className = 'err';
-      document.getElementById('status').textContent = msg;
+    function setStatus(message) {
+      const status =
+        document.getElementById(
+          'status'
+        );
+
+      status.className = '';
+      status.textContent =
+        message;
+    }
+
+    function showError(message) {
+      const status =
+        document.getElementById(
+          'status'
+        );
+
+      status.className =
+        'err';
+
+      status.textContent =
+        message;
     }
 
     if (token) {
