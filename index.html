@@ -3,217 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Heizöl Hirmer – POST-Test V2</title>
-
+  <title>Heizöl Hirmer – Login-Test</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 30px 15px;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f5f5;
-      color: #222;
-    }
-
-    .box {
-      width: 100%;
-      max-width: 650px;
-      margin: 40px auto;
-      padding: 30px;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
-    }
-
-    h1 {
-      margin-top: 0;
-      color: #c40000;
-      font-size: 30px;
-    }
-
-    p {
-      font-size: 18px;
-      line-height: 1.5;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 20px;
-      padding: 18px;
-      border: 0;
-      border-radius: 8px;
-      background: #c40000;
-      color: #fff;
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
-
-    #status {
-      margin-top: 25px;
-      padding: 18px;
-      border-radius: 8px;
-      background: #eee;
-      font-size: 17px;
-      line-height: 1.5;
-      word-break: break-word;
-    }
-
-    .success {
-      background: #e7f6e7 !important;
-      color: #126412;
-    }
-
-    .error {
-      background: #fde7e7 !important;
-      color: #9b0000;
-    }
-
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-size: 14px;
-    }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:24px 14px; font-family:Arial,Helvetica,sans-serif; background:#f5f5f5; color:#222; }
+    .box { max-width:680px; margin:30px auto; background:#fff; border-radius:14px; padding:28px; box-shadow:0 4px 18px rgba(0,0,0,.12); }
+    h1 { color:#c40000; margin-top:0; }
+    label { display:block; font-size:18px; font-weight:700; margin:18px 0 8px; }
+    input { width:100%; padding:15px; font-size:18px; border:1px solid #bbb; border-radius:8px; }
+    .check { display:flex; gap:10px; align-items:center; margin:16px 0; font-size:17px; }
+    .check input { width:auto; }
+    button { width:100%; border:0; border-radius:8px; padding:17px; background:#c40000; color:#fff; font-size:20px; font-weight:700; margin-top:12px; cursor:pointer; }
+    button.secondary { background:#555; }
+    #status { margin-top:22px; padding:16px; background:#eee; border-radius:8px; white-space:pre-wrap; }
+    .ok { background:#e7f6e7 !important; color:#126412; }
+    .err { background:#fde7e7 !important; color:#9b0000; }
+    .hidden { display:none; }
   </style>
 </head>
-
 <body>
-
   <div class="box">
-
     <h1>Heizöl Hirmer</h1>
+    <p>Login-/Sitzungstest für die spätere GitHub-App.</p>
 
-    <p>
-      POST-Verbindungstest V2 zwischen GitHub Pages
-      und Google Apps Script.
-    </p>
-
-    <button id="testButton" onclick="testConnection()">
-      Verbindung testen
-    </button>
-
-    <div id="status">
-      Noch kein Test durchgeführt.
+    <div id="loginArea">
+      <label for="password">App-Passwort</label>
+      <input id="password" type="password" autocomplete="current-password">
+      <label class="check">
+        <input id="remember" type="checkbox">
+        Auf diesem Gerät angemeldet bleiben
+      </label>
+      <button onclick="login()">Anmelden</button>
     </div>
 
+    <div id="loggedArea" class="hidden">
+      <button onclick="checkSession()">Sitzung prüfen</button>
+      <button class="secondary" onclick="logout()">Abmelden</button>
+    </div>
+
+    <div id="status">Noch nicht angemeldet.</div>
+
+    <iframe name="authFrame" id="authFrame" class="hidden"></iframe>
+
+    <form id="authForm" class="hidden" method="post" target="authFrame" action="https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec">
+      <input type="hidden" name="action" id="formAction">
+      <input type="hidden" name="password" id="formPassword">
+      <input type="hidden" name="remember" id="formRemember">
+    </form>
   </div>
 
   <script>
-    const API_URL =
-      'https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec';
+    const API_URL = "https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec";
+    let token = sessionStorage.getItem('hirmer_token') || localStorage.getItem('hirmer_token') || '';
 
-    async function testConnection() {
+    window.addEventListener('message', function(event) {
+      const data = event.data || {};
+      if (typeof data !== 'object') return;
 
-      const button =
-        document.getElementById('testButton');
-
-      const status =
-        document.getElementById('status');
-
-      button.disabled = true;
-      status.className = '';
-      status.textContent = 'Verbindung wird getestet ...';
-
-      try {
-
-        const response =
-          await fetch(
-            API_URL,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-              },
-              body: JSON.stringify({
-                action: 'postTestV2',
-                source: 'github-pages',
-                expectedTest: 'GITHUB-POST-TEST-2',
-                timestamp: new Date().toISOString()
-              }),
-              redirect: 'follow',
-              cache: 'no-store'
-            }
-          );
-
-        const text =
-          await response.text();
-
-        let data;
-
-        try {
-          data = JSON.parse(text);
-        } catch (parseError) {
-          throw new Error(
-            'Antwort ist kein JSON.\n\n' +
-            text.substring(0, 700)
-          );
+      if (data.success && data.token) {
+        token = data.token;
+        if (document.getElementById('remember').checked) {
+          localStorage.setItem('hirmer_token', token);
+          sessionStorage.removeItem('hirmer_token');
+        } else {
+          sessionStorage.setItem('hirmer_token', token);
+          localStorage.removeItem('hirmer_token');
         }
-
-        if (!response.ok) {
-          throw new Error(
-            'HTTP-Fehler ' +
-            response.status
-          );
-        }
-
-        if (data.success !== true) {
-          throw new Error(
-            data.message ||
-            'Unbekannte Backend-Antwort.'
-          );
-        }
-
-        status.className = 'success';
-        status.innerHTML =
-          '<strong>✓ POST-Verbindung funktioniert!</strong>' +
-          '<br><br>' +
-          'Meldung: ' + escapeHtml(data.message || '') +
-          '<br>' +
-          'Backend: ' + escapeHtml(data.backend || '') +
-          '<br>' +
-          'Backend-Testkennung: ' + escapeHtml(data.test || '') +
-          '<br>' +
-          'Frontend-Testkennung: GITHUB-POST-TEST-2' +
-          '<br>' +
-          'Zeitstempel: ' + escapeHtml(data.timestamp || '');
-
-      } catch (error) {
-
-        console.error(error);
-
-        status.className = 'error';
-        status.innerHTML =
-          '<strong>✗ POST-Verbindung fehlgeschlagen</strong>' +
-          '<br><br>' +
-          '<pre>' +
-          escapeHtml(
-            error.message ||
-            String(error)
-          ) +
-          '</pre>';
+        showLoggedIn('Anmeldung erfolgreich.\nSitzung läuft bis: ' + (data.expiresAt || ''));
+      } else if (data.success === false) {
+        showError(data.message || 'Anmeldung fehlgeschlagen.');
       }
+    });
 
-      button.disabled = false;
+    function login() {
+      document.getElementById('formAction').value = 'login';
+      document.getElementById('formPassword').value = document.getElementById('password').value;
+      document.getElementById('formRemember').value = document.getElementById('remember').checked ? 'true' : 'false';
+      document.getElementById('status').className = '';
+      document.getElementById('status').textContent = 'Anmeldung wird geprüft ...';
+      document.getElementById('authForm').submit();
     }
 
-    function escapeHtml(value) {
-      return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    function jsonp(action, params={}) {
+      return new Promise((resolve, reject) => {
+        const cb = '__hirmer_' + Date.now() + '_' + Math.floor(Math.random()*100000);
+        const script = document.createElement('script');
+        const timer = setTimeout(() => cleanup(new Error('Zeitüberschreitung.')), 12000);
+
+        function cleanup(err, data) {
+          clearTimeout(timer);
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[cb]; } catch(e) {}
+          err ? reject(err) : resolve(data);
+        }
+
+        window[cb] = data => cleanup(null, data);
+
+        const q = new URLSearchParams({api:'1', action, callback:cb, token, ...params, _:Date.now().toString()});
+        script.src = API_URL + '?' + q.toString();
+        script.onerror = () => cleanup(new Error('API konnte nicht geladen werden.'));
+        document.head.appendChild(script);
+      });
+    }
+
+    async function checkSession() {
+      try {
+        const data = await jsonp('sessionCheck');
+        if (!data.success) throw new Error(data.message || 'Sitzung ungültig.');
+        showLoggedIn('Sitzung ist gültig.\nAblauf: ' + (data.expiresAt || ''));
+      } catch (e) {
+        clearToken();
+        showError(e.message || String(e));
+      }
+    }
+
+    async function logout() {
+      try { await jsonp('logout'); } catch(e) {}
+      clearToken();
+      document.getElementById('loginArea').classList.remove('hidden');
+      document.getElementById('loggedArea').classList.add('hidden');
+      document.getElementById('status').className = '';
+      document.getElementById('status').textContent = 'Abgemeldet.';
+    }
+
+    function clearToken() {
+      token = '';
+      localStorage.removeItem('hirmer_token');
+      sessionStorage.removeItem('hirmer_token');
+    }
+
+    function showLoggedIn(msg) {
+      document.getElementById('loginArea').classList.add('hidden');
+      document.getElementById('loggedArea').classList.remove('hidden');
+      document.getElementById('status').className = 'ok';
+      document.getElementById('status').textContent = msg;
+    }
+
+    function showError(msg) {
+      document.getElementById('status').className = 'err';
+      document.getElementById('status').textContent = msg;
+    }
+
+    if (token) {
+      checkSession();
     }
   </script>
-
 </body>
 </html>
