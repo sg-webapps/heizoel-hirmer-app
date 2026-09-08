@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Heizöl Hirmer – Verbindungstest</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px 15px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    .box {
+      width: 100%;
+      max-width: 650px;
+      margin: 40px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #c40000;
+      font-size: 30px;
+    }
+
+    p {
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 18px;
+      border: 0;
+      border-radius: 8px;
+      background: #c40000;
+      color: #fff;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    #status {
+      margin-top: 25px;
+      padding: 18px;
+      border-radius: 8px;
+      background: #eee;
+      font-size: 17px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .success {
+      background: #e7f6e7 !important;
+      color: #126412;
+    }
+
+    .error {
+      background: #fde7e7 !important;
+      color: #9b0000;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="box">
+
+    <h1>Heizöl Hirmer</h1>
+
+    <p>
+      Verbindungstest zwischen GitHub Pages
+      und Google Apps Script.
+    </p>
+
+    <button id="testButton" onclick="testConnection()">
+      Verbindung testen
+    </button>
+
+    <div id="status">
+      Noch kein Test durchgeführt.
+    </div>
+
+  </div>
+
+  <script>
+
+    const API_URL =
+      'https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec';
+
+
+    async function testConnection() {
+
+      const button =
+        document.getElementById('testButton');
+
+      const status =
+        document.getElementById('status');
+
+
+      button.disabled = true;
+
+      status.className = '';
+
+      status.innerHTML =
+        'Verbindung wird getestet ...';
+
+
+      try {
+
+        const response =
+          await fetch(
+            API_URL,
+            {
+              method: 'POST',
+
+              headers: {
+                'Content-Type':
+                  'text/plain;charset=utf-8'
+              },
+
+              body:
+                JSON.stringify({
+                  action:
+                    'connectionTest',
+
+                  source:
+                    'github-pages'
+                }),
+
+              redirect:
+                'follow'
+            }
+          );
+
+
+        const text =
+          await response.text();
+
+
+        let data;
+
+        try {
+
+          data =
+            JSON.parse(text);
+
+        } catch (parseError) {
+
+          throw new Error(
+            'Die Antwort konnte nicht als JSON gelesen werden.\n\n' +
+            text.substring(0, 500)
+          );
+        }
+
+
+        if (
+          !response.ok
+        ) {
+
+          throw new Error(
+            'HTTP-Fehler ' +
+            response.status
+          );
+        }
+
+
+        if (
+          data.success !== true
+        ) {
+
+          throw new Error(
+            data.message ||
+            'Unbekannter Fehler'
+          );
+        }
+
+
+        status.className =
+          'success';
+
+        status.innerHTML =
+          '<strong>✓ Verbindung funktioniert!</strong>' +
+          '<br><br>' +
+          'Meldung: ' +
+          escapeHtml(data.message || '') +
+          '<br>' +
+          'Backend: ' +
+          escapeHtml(data.backend || '') +
+          '<br>' +
+          'Test: ' +
+          escapeHtml(data.test || '') +
+          '<br>' +
+          'Zeitstempel: ' +
+          escapeHtml(data.timestamp || '');
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        status.className =
+          'error';
+
+        status.innerHTML =
+          '<strong>✗ Verbindung fehlgeschlagen</strong>' +
+          '<br><br>' +
+          '<pre>' +
+          escapeHtml(
+            error.message ||
+            String(error)
+          ) +
+          '</pre>';
+      }
+
+
+      button.disabled = false;
+    }
+
+
+    function escapeHtml(value) {
+
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+  </script>
+
+</body>
+</html>
