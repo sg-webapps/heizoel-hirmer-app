@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Heizöl Hirmer – Verbindungstest</title>
+  <title>Heizöl Hirmer – JSONP-Test</title>
 
   <style>
     * {
@@ -93,7 +93,7 @@
     <h1>Heizöl Hirmer</h1>
 
     <p>
-      Verbindungstest zwischen GitHub Pages
+      JSONP-Verbindungstest zwischen GitHub Pages
       und Google Apps Script.
     </p>
 
@@ -108,142 +108,100 @@
   </div>
 
   <script>
-
     const API_URL =
       'https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec';
 
-
-    async function testConnection() {
-
-      const button =
-        document.getElementById('testButton');
-
-      const status =
-        document.getElementById('status');
-
+    function testConnection() {
+      const button = document.getElementById('testButton');
+      const status = document.getElementById('status');
 
       button.disabled = true;
-
       status.className = '';
+      status.textContent = 'Verbindung wird getestet ...';
 
-      status.innerHTML =
-        'Verbindung wird getestet ...';
+      const callbackName =
+        '__hirmerJsonp_' +
+        Date.now() +
+        '_' +
+        Math.floor(Math.random() * 100000);
 
+      const timeout = setTimeout(function() {
+        cleanup();
+        showError(
+          'Zeitüberschreitung: Apps Script hat keine JSONP-Antwort geliefert.'
+        );
+      }, 12000);
 
-      try {
+      function cleanup() {
+        clearTimeout(timeout);
 
-        const response =
-          await fetch(
-            API_URL,
-            {
-              method: 'POST',
-
-              headers: {
-                'Content-Type':
-                  'text/plain;charset=utf-8'
-              },
-
-              body:
-                JSON.stringify({
-                  action:
-                    'connectionTest',
-
-                  source:
-                    'github-pages'
-                }),
-
-              redirect:
-                'follow'
-            }
-          );
-
-
-        const text =
-          await response.text();
-
-
-        let data;
+        if (script && script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
 
         try {
-
-          data =
-            JSON.parse(text);
-
-        } catch (parseError) {
-
-          throw new Error(
-            'Die Antwort konnte nicht als JSON gelesen werden.\n\n' +
-            text.substring(0, 500)
-          );
+          delete window[callbackName];
+        } catch (e) {
+          window[callbackName] = undefined;
         }
 
+        button.disabled = false;
+      }
 
-        if (
-          !response.ok
-        ) {
-
-          throw new Error(
-            'HTTP-Fehler ' +
-            response.status
-          );
-        }
-
-
-        if (
-          data.success !== true
-        ) {
-
-          throw new Error(
-            data.message ||
-            'Unbekannter Fehler'
-          );
-        }
-
-
-        status.className =
-          'success';
-
+      function showError(message) {
+        status.className = 'error';
         status.innerHTML =
-          '<strong>✓ Verbindung funktioniert!</strong>' +
-          '<br><br>' +
-          'Meldung: ' +
-          escapeHtml(data.message || '') +
-          '<br>' +
-          'Backend: ' +
-          escapeHtml(data.backend || '') +
-          '<br>' +
-          'Test: ' +
-          escapeHtml(data.test || '') +
-          '<br>' +
-          'Zeitstempel: ' +
-          escapeHtml(data.timestamp || '');
-
-
-      } catch (error) {
-
-        console.error(error);
-
-        status.className =
-          'error';
-
-        status.innerHTML =
-          '<strong>✗ Verbindung fehlgeschlagen</strong>' +
-          '<br><br>' +
-          '<pre>' +
-          escapeHtml(
-            error.message ||
-            String(error)
-          ) +
+          '<strong>✗ Verbindung fehlgeschlagen</strong><br><br><pre>' +
+          escapeHtml(message) +
           '</pre>';
       }
 
+      window[callbackName] = function(data) {
+        cleanup();
 
-      button.disabled = false;
+        if (!data || data.success !== true) {
+          showError(
+            data && data.message
+              ? data.message
+              : 'Unbekannte Antwort vom Backend.'
+          );
+          return;
+        }
+
+        status.className = 'success';
+        status.innerHTML =
+          '<strong>✓ JSONP-Verbindung funktioniert!</strong>' +
+          '<br><br>' +
+          'Meldung: ' + escapeHtml(data.message || '') +
+          '<br>' +
+          'Backend: ' + escapeHtml(data.backend || '') +
+          '<br>' +
+          'Test: ' + escapeHtml(data.test || '') +
+          '<br>' +
+          'Zeitstempel: ' + escapeHtml(data.timestamp || '');
+      };
+
+      const script = document.createElement('script');
+
+      script.onerror = function() {
+        cleanup();
+        showError(
+          'Das JSONP-Script konnte nicht geladen werden.'
+        );
+      };
+
+      script.src =
+        API_URL +
+        '?action=connectionTest' +
+        '&callback=' +
+        encodeURIComponent(callbackName) +
+        '&_=' +
+        Date.now();
+
+      document.head.appendChild(script);
     }
 
-
     function escapeHtml(value) {
-
       return String(value)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -251,7 +209,6 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
-
   </script>
 
 </body>
