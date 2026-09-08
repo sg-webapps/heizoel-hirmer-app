@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Heizöl Hirmer – JSONP Stufentest</title>
+  <title>Heizöl Hirmer – Passworttest V5</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -21,48 +21,58 @@
       padding: 28px;
       box-shadow: 0 4px 18px rgba(0,0,0,.12);
     }
-    h1 { color: #c40000; margin-top: 0; }
-    p { font-size: 18px; line-height: 1.5; }
+    h1 { color:#c40000; margin-top:0; }
+    p { font-size:18px; line-height:1.5; }
+    label {
+      display:block;
+      font-size:18px;
+      font-weight:700;
+      margin:18px 0 8px;
+    }
+    input {
+      width:100%;
+      padding:15px;
+      font-size:18px;
+      border:1px solid #bbb;
+      border-radius:8px;
+    }
     button {
-      width: 100%;
-      border: 0;
-      border-radius: 8px;
-      padding: 17px;
-      background: #c40000;
-      color: #fff;
-      font-size: 20px;
-      font-weight: 700;
-      margin-top: 14px;
-      cursor: pointer;
+      width:100%;
+      border:0;
+      border-radius:8px;
+      padding:17px;
+      background:#c40000;
+      color:#fff;
+      font-size:20px;
+      font-weight:700;
+      margin-top:16px;
+      cursor:pointer;
     }
-    button.secondary { background: #555; }
     #status {
-      margin-top: 22px;
-      padding: 16px;
-      background: #eee;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      font-size: 17px;
-      line-height: 1.45;
+      margin-top:22px;
+      padding:16px;
+      background:#eee;
+      border-radius:8px;
+      white-space:pre-wrap;
+      font-size:17px;
     }
-    .ok { background: #e7f6e7 !important; color: #126412; }
-    .err { background: #fde7e7 !important; color: #9b0000; }
+    .ok { background:#e7f6e7 !important; color:#126412; }
+    .err { background:#fde7e7 !important; color:#9b0000; }
   </style>
 </head>
 <body>
   <div class="box">
     <h1>Heizöl Hirmer</h1>
     <p>
-      Stufentest ohne Login, Session, HMAC oder iframe.
-      Es werden bewusst keine Kundendaten übertragen.
+      V5: echte Passwortprüfung über den funktionierenden JSONP-Weg.
+      Noch ohne Sitzung und ohne „angemeldet bleiben“.
     </p>
 
-    <button onclick="runDataTest()">
-      1. JSONP-Datenabruf testen
-    </button>
+    <label for="password">App-Passwort</label>
+    <input id="password" type="password" autocomplete="current-password">
 
-    <button class="secondary" onclick="runProtectedTest()">
-      2. Geschützten Test aufrufen
+    <button id="loginButton" onclick="runPasswordTest()">
+      Passwort prüfen
     </button>
 
     <div id="status">
@@ -72,12 +82,11 @@
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec";
-    const TEST_TOKEN = "TEST-nlupaIv2yaFRQfaElkH3w9G6";
 
     function jsonp(action, params = {}) {
       return new Promise((resolve, reject) => {
         const callback =
-          '__hirmerTest_' +
+          '__hirmerV5_' +
           Date.now() +
           '_' +
           Math.floor(Math.random() * 100000);
@@ -97,11 +106,9 @@
 
         function cleanup() {
           clearTimeout(timer);
-
           if (script.parentNode) {
             script.parentNode.removeChild(script);
           }
-
           try {
             delete window[callback];
           } catch (e) {}
@@ -139,73 +146,121 @@
       });
     }
 
-    async function runDataTest() {
-      setStatus('JSONP-Datenabruf läuft ...');
+    async function sha256Hex(text) {
+      const data =
+        new TextEncoder().encode(text);
+
+      const digest =
+        await crypto.subtle.digest(
+          'SHA-256',
+          data
+        );
+
+      return Array
+        .from(
+          new Uint8Array(digest)
+        )
+        .map(
+          b =>
+            b.toString(16)
+              .padStart(2, '0')
+        )
+        .join('');
+    }
+
+    async function hmacSha256Hex(message, keyText) {
+      const key =
+        await crypto.subtle.importKey(
+          'raw',
+          new TextEncoder().encode(keyText),
+          {
+            name: 'HMAC',
+            hash: 'SHA-256'
+          },
+          false,
+          ['sign']
+        );
+
+      const signature =
+        await crypto.subtle.sign(
+          'HMAC',
+          key,
+          new TextEncoder().encode(message)
+        );
+
+      return Array
+        .from(
+          new Uint8Array(signature)
+        )
+        .map(
+          b =>
+            b.toString(16)
+              .padStart(2, '0')
+        )
+        .join('');
+    }
+
+    async function runPasswordTest() {
+      const password =
+        document.getElementById('password').value;
+
+      const button =
+        document.getElementById('loginButton');
+
+      if (!password) {
+        showError('Bitte das App-Passwort eingeben.');
+        return;
+      }
+
+      button.disabled = true;
+      setStatus('Passwort wird geprüft ...');
 
       try {
-        const data =
-          await jsonp('dataTest');
+        const challenge =
+          await jsonp(
+            'passwordChallenge'
+          );
 
-        if (!data || data.success !== true) {
+        if (!challenge || challenge.success !== true) {
           throw new Error(
-            data && data.message
-              ? data.message
-              : 'Unbekannte Antwort.'
+            challenge && challenge.message
+              ? challenge.message
+              : 'Challenge konnte nicht geladen werden.'
           );
         }
 
-        showOk(
-          '✓ JSONP-Datenabruf funktioniert\n\n' +
-          'Test: ' + (data.test || '') + '\n' +
-          'Backend: ' + (data.backendVersion || '') + '\n' +
-          'Fahrzeug: ' +
-          (
-            data.vehicle
-              ? (
-                  data.vehicle.name +
-                  ' | ' +
-                  data.vehicle.plate +
-                  ' | Bestand ' +
-                  Number(data.vehicle.stock || 0)
-                    .toLocaleString('de-DE') +
-                  ' L'
-                )
-              : 'keine Fahrzeugdaten'
-          )
-        );
+        const passwordKey =
+          await sha256Hex(password);
 
-      } catch (error) {
-        showError(
-          error.message ||
-          String(error)
-        );
-      }
-    }
+        const proof =
+          await hmacSha256Hex(
+            challenge.nonce,
+            passwordKey
+          );
 
-    async function runProtectedTest() {
-      setStatus('Geschützter Test läuft ...');
-
-      try {
-        const data =
+        const result =
           await jsonp(
-            'protectedTest',
+            'passwordVerify',
             {
-              token: TEST_TOKEN
+              nonce:
+                challenge.nonce,
+              proof:
+                proof
             }
           );
 
-        if (!data || data.success !== true) {
+        if (!result || result.success !== true) {
           throw new Error(
-            data && data.message
-              ? data.message
-              : 'Unbekannte Antwort.'
+            result && result.message
+              ? result.message
+              : 'Passwortprüfung fehlgeschlagen.'
           );
         }
 
         showOk(
-          '✓ Geschützter JSONP-Test funktioniert\n\n' +
-          'Test: ' + (data.test || '') + '\n' +
-          'Meldung: ' + (data.message || '')
+          '✓ Passwortprüfung funktioniert\n\n' +
+          'Test: ' + (result.test || '') + '\n' +
+          'Meldung: ' + (result.message || '')
         );
 
       } catch (error) {
@@ -214,6 +269,8 @@
           String(error)
         );
       }
+
+      button.disabled = false;
     }
 
     function setStatus(message) {
