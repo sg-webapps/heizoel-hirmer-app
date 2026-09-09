@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Heizöl Hirmer – Sitzungstest V6</title>
+  <title>Heizöl Hirmer – V6 Debug</title>
   <style>
     * { box-sizing: border-box; }
     body { margin:0; padding:24px 14px; font-family:Arial,Helvetica,sans-serif; background:#f5f5f5; color:#222; }
-    .box { max-width:720px; margin:30px auto; background:#fff; border-radius:14px; padding:28px; box-shadow:0 4px 18px rgba(0,0,0,.12); }
-    h1 { color:#c40000; margin-top:0; }
+    .box { max-width:760px; margin:30px auto; background:#fff; border-radius:14px; padding:28px; box-shadow:0 4px 18px rgba(0,0,0,.12); }
+    h1 { margin-top:0; color:#c40000; font-size:32px; }
     p { font-size:18px; line-height:1.5; }
     label { display:block; font-size:18px; font-weight:700; margin:18px 0 8px; }
     input[type="password"] { width:100%; padding:15px; font-size:18px; border:1px solid #bbb; border-radius:8px; }
@@ -18,6 +18,7 @@
     button.secondary { background:#555; }
     button:disabled { opacity:.6; cursor:wait; }
     #status { margin-top:22px; padding:16px; background:#eee; border-radius:8px; white-space:pre-wrap; font-size:17px; line-height:1.5; }
+    #debug { margin-top:18px; padding:16px; background:#111; color:#eee; border-radius:8px; white-space:pre-wrap; overflow-wrap:anywhere; font-family:Consolas,Monaco,monospace; font-size:14px; line-height:1.45; min-height:180px; }
     .ok { background:#e7f6e7 !important; color:#126412; }
     .err { background:#fde7e7 !important; color:#9b0000; }
     .hidden { display:none !important; }
@@ -26,7 +27,7 @@
 <body>
   <div class="box">
     <h1>Heizöl Hirmer</h1>
-    <p>V6: Passwortprüfung plus Sitzung, „auf diesem Gerät angemeldet bleiben“ und Abmelden.</p>
+    <p>V6 Debug-Test. Diese Seite zeigt jeden einzelnen Schritt der Anmeldung, damit wir exakt sehen, wo der Ablauf hängen bleibt.</p>
 
     <div id="loginArea">
       <label for="password">App-Passwort</label>
@@ -37,7 +38,7 @@
         Auf diesem Gerät angemeldet bleiben
       </label>
 
-      <button id="loginButton" onclick="login()">Anmelden</button>
+      <button id="loginButton" onclick="loginDebug()">Debug-Anmeldung starten</button>
     </div>
 
     <div id="sessionArea" class="hidden">
@@ -45,43 +46,34 @@
       <button class="secondary" onclick="logout()">Abmelden</button>
     </div>
 
-    <div id="status">Noch nicht angemeldet.</div>
+    <div id="status">Noch kein Test durchgeführt.</div>
+    <div id="debug">Debug-Protokoll:</div>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec";
-    const TOKEN_KEY = 'hirmer_v6_token';
+    const TOKEN_KEY = 'hirmer_v6_debug_token';
 
     let token =
       localStorage.getItem(TOKEN_KEY) ||
       sessionStorage.getItem(TOKEN_KEY) ||
       '';
 
-    function jsonp(action, params = {}) {
+    function log(message) {
+      const el = document.getElementById('debug');
+      const time = new Date().toLocaleTimeString('de-DE');
+      el.textContent += '\n[' + time + '] ' + message;
+    }
+
+    function jsonp(action, params = {}, label = action) {
       return new Promise((resolve, reject) => {
         const callback =
-          '__hirmerV6_' +
+          '__hirmerV6Debug_' +
           Date.now() +
           '_' +
           Math.floor(Math.random() * 100000);
 
         const script = document.createElement('script');
-
-        const timer = setTimeout(() => {
-          cleanup();
-          reject(new Error('Zeitüberschreitung nach 12 Sekunden.'));
-        }, 12000);
-
-        function cleanup() {
-          clearTimeout(timer);
-          if (script.parentNode) script.parentNode.removeChild(script);
-          try { delete window[callback]; } catch (e) {}
-        }
-
-        window[callback] = function(data) {
-          cleanup();
-          resolve(data);
-        };
 
         const query = new URLSearchParams({
           api: 'v6',
@@ -91,27 +83,72 @@
           _: Date.now().toString()
         });
 
-        script.src = API_URL + '?' + query.toString();
+        const url = API_URL + '?' + query.toString();
 
-        script.onerror = function() {
+        log(label + ': Anfrage wird gestartet.');
+        log(label + ': URL-Länge = ' + url.length);
+
+        let finished = false;
+
+        const timer = setTimeout(() => {
+          if (finished) return;
+          finished = true;
           cleanup();
-          reject(new Error('Das JSONP-Script konnte nicht geladen werden.'));
+          log(label + ': FEHLER – Zeitüberschreitung nach 12 Sekunden.');
+          reject(new Error(label + ': Zeitüberschreitung nach 12 Sekunden.'));
+        }, 12000);
+
+        function cleanup() {
+          clearTimeout(timer);
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+          try { delete window[callback]; } catch (e) {}
+        }
+
+        window[callback] = function(data) {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          log(label + ': Callback empfangen.');
+          log(label + ': Antwort = ' + JSON.stringify(data));
+          resolve(data);
         };
 
+        script.onload = function() {
+          log(label + ': Script-Datei wurde geladen.');
+        };
+
+        script.onerror = function() {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          log(label + ': FEHLER – Script konnte nicht geladen werden.');
+          reject(new Error(label + ': JSONP-Script konnte nicht geladen werden.'));
+        };
+
+        script.src = url;
         document.head.appendChild(script);
       });
     }
 
     async function sha256Hex(text) {
+      log('SHA-256: Browser-Berechnung startet.');
       const data = new TextEncoder().encode(text);
       const digest = await crypto.subtle.digest('SHA-256', data);
 
-      return Array.from(new Uint8Array(digest))
+      const result = Array
+        .from(new Uint8Array(digest))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
+
+      log('SHA-256: Berechnung abgeschlossen.');
+      return result;
     }
 
     async function hmacSha256Hex(message, keyText) {
+      log('HMAC: Browser-Berechnung startet.');
+
       const key = await crypto.subtle.importKey(
         'raw',
         new TextEncoder().encode(keyText),
@@ -126,12 +163,16 @@
         new TextEncoder().encode(message)
       );
 
-      return Array.from(new Uint8Array(signature))
+      const result = Array
+        .from(new Uint8Array(signature))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
+
+      log('HMAC: Berechnung abgeschlossen.');
+      return result;
     }
 
-    async function login() {
+    async function loginDebug() {
       const password = document.getElementById('password').value;
       const remember = document.getElementById('remember').checked;
       const button = document.getElementById('loginButton');
@@ -141,11 +182,19 @@
         return;
       }
 
+      document.getElementById('debug').textContent = 'Debug-Protokoll:';
       button.disabled = true;
-      setStatus('Anmeldung wird geprüft ...');
+      setStatus('Debug-Anmeldung läuft ...');
+      log('START: Anmeldung beginnt.');
 
       try {
-        const challenge = await jsonp('passwordChallenge');
+        log('SCHRITT 1: Challenge anfordern.');
+
+        const challenge = await jsonp(
+          'passwordChallenge',
+          {},
+          'SCHRITT 1'
+        );
 
         if (!challenge || challenge.success !== true) {
           throw new Error(
@@ -155,8 +204,19 @@
           );
         }
 
+        log('SCHRITT 1: Challenge erfolgreich.');
+        log('SCHRITT 2: Passwort-Hash berechnen.');
+
         const passwordKey = await sha256Hex(password);
-        const proof = await hmacSha256Hex(challenge.nonce, passwordKey);
+
+        log('SCHRITT 3: HMAC-Proof berechnen.');
+
+        const proof = await hmacSha256Hex(
+          challenge.nonce,
+          passwordKey
+        );
+
+        log('SCHRITT 4: Proof an Apps Script senden.');
 
         const result = await jsonp(
           'passwordVerify',
@@ -164,7 +224,8 @@
             nonce: challenge.nonce,
             proof: proof,
             remember: remember ? 'true' : 'false'
-          }
+          },
+          'SCHRITT 4'
         );
 
         if (!result || result.success !== true) {
@@ -175,14 +236,18 @@
           );
         }
 
+        log('SCHRITT 4: Anmeldung erfolgreich.');
+
         token = result.token;
 
         if (remember) {
           localStorage.setItem(TOKEN_KEY, token);
           sessionStorage.removeItem(TOKEN_KEY);
+          log('TOKEN: in localStorage gespeichert.');
         } else {
           sessionStorage.setItem(TOKEN_KEY, token);
           localStorage.removeItem(TOKEN_KEY);
+          log('TOKEN: in sessionStorage gespeichert.');
         }
 
         showLoggedIn(
@@ -192,6 +257,7 @@
         );
 
       } catch (error) {
+        log('ABBRUCH: ' + (error.message || String(error)));
         showError(error.message || String(error));
       }
 
@@ -205,11 +271,13 @@
       }
 
       setStatus('Sitzung wird geprüft ...');
+      log('SESSION: Prüfung startet.');
 
       try {
         const result = await jsonp(
           'sessionCheck',
-          { token: token }
+          { token: token },
+          'SESSION'
         );
 
         if (!result || result.success !== true) {
@@ -239,11 +307,13 @@
       clearToken();
       showLoggedOut();
       setStatus('Abmeldung wird durchgeführt ...');
+      log('LOGOUT: Anfrage startet.');
 
       try {
         const result = await jsonp(
           'logout',
-          { token: oldToken }
+          { token: oldToken },
+          'LOGOUT'
         );
 
         if (!result || result.success !== true) {
