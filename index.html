@@ -3,115 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Heizöl Hirmer – Passworttest V5</title>
+  <title>Heizöl Hirmer – Sitzungstest V6</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 24px 14px;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f5f5;
-      color: #222;
-    }
-    .box {
-      max-width: 720px;
-      margin: 30px auto;
-      background: #fff;
-      border-radius: 14px;
-      padding: 28px;
-      box-shadow: 0 4px 18px rgba(0,0,0,.12);
-    }
+    body { margin:0; padding:24px 14px; font-family:Arial,Helvetica,sans-serif; background:#f5f5f5; color:#222; }
+    .box { max-width:720px; margin:30px auto; background:#fff; border-radius:14px; padding:28px; box-shadow:0 4px 18px rgba(0,0,0,.12); }
     h1 { color:#c40000; margin-top:0; }
     p { font-size:18px; line-height:1.5; }
-    label {
-      display:block;
-      font-size:18px;
-      font-weight:700;
-      margin:18px 0 8px;
-    }
-    input {
-      width:100%;
-      padding:15px;
-      font-size:18px;
-      border:1px solid #bbb;
-      border-radius:8px;
-    }
-    button {
-      width:100%;
-      border:0;
-      border-radius:8px;
-      padding:17px;
-      background:#c40000;
-      color:#fff;
-      font-size:20px;
-      font-weight:700;
-      margin-top:16px;
-      cursor:pointer;
-    }
-    #status {
-      margin-top:22px;
-      padding:16px;
-      background:#eee;
-      border-radius:8px;
-      white-space:pre-wrap;
-      font-size:17px;
-    }
+    label { display:block; font-size:18px; font-weight:700; margin:18px 0 8px; }
+    input[type="password"] { width:100%; padding:15px; font-size:18px; border:1px solid #bbb; border-radius:8px; }
+    .check { display:flex; align-items:center; gap:10px; margin-top:16px; font-size:18px; font-weight:700; }
+    .check input { width:22px; height:22px; }
+    button { width:100%; border:0; border-radius:8px; padding:17px; background:#c40000; color:#fff; font-size:20px; font-weight:700; margin-top:16px; cursor:pointer; }
+    button.secondary { background:#555; }
+    button:disabled { opacity:.6; cursor:wait; }
+    #status { margin-top:22px; padding:16px; background:#eee; border-radius:8px; white-space:pre-wrap; font-size:17px; line-height:1.5; }
     .ok { background:#e7f6e7 !important; color:#126412; }
     .err { background:#fde7e7 !important; color:#9b0000; }
+    .hidden { display:none !important; }
   </style>
 </head>
 <body>
   <div class="box">
     <h1>Heizöl Hirmer</h1>
-    <p>
-      V5: echte Passwortprüfung über den funktionierenden JSONP-Weg.
-      Noch ohne Sitzung und ohne „angemeldet bleiben“.
-    </p>
+    <p>V6: Passwortprüfung plus Sitzung, „auf diesem Gerät angemeldet bleiben“ und Abmelden.</p>
 
-    <label for="password">App-Passwort</label>
-    <input id="password" type="password" autocomplete="current-password">
+    <div id="loginArea">
+      <label for="password">App-Passwort</label>
+      <input id="password" type="password" autocomplete="current-password">
 
-    <button id="loginButton" onclick="runPasswordTest()">
-      Passwort prüfen
-    </button>
+      <label class="check">
+        <input id="remember" type="checkbox">
+        Auf diesem Gerät angemeldet bleiben
+      </label>
 
-    <div id="status">
-      Noch kein Test durchgeführt.
+      <button id="loginButton" onclick="login()">Anmelden</button>
     </div>
+
+    <div id="sessionArea" class="hidden">
+      <button onclick="checkSession()">Sitzung prüfen</button>
+      <button class="secondary" onclick="logout()">Abmelden</button>
+    </div>
+
+    <div id="status">Noch nicht angemeldet.</div>
   </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec";
+    const TOKEN_KEY = 'hirmer_v6_token';
+
+    let token =
+      localStorage.getItem(TOKEN_KEY) ||
+      sessionStorage.getItem(TOKEN_KEY) ||
+      '';
 
     function jsonp(action, params = {}) {
       return new Promise((resolve, reject) => {
         const callback =
-          '__hirmerV5_' +
+          '__hirmerV6_' +
           Date.now() +
           '_' +
           Math.floor(Math.random() * 100000);
 
-        const script =
-          document.createElement('script');
+        const script = document.createElement('script');
 
-        const timer =
-          setTimeout(() => {
-            cleanup();
-            reject(
-              new Error(
-                'Zeitüberschreitung nach 12 Sekunden.'
-              )
-            );
-          }, 12000);
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error('Zeitüberschreitung nach 12 Sekunden.'));
+        }, 12000);
 
         function cleanup() {
           clearTimeout(timer);
-          if (script.parentNode) {
-            script.parentNode.removeChild(script);
-          }
-          try {
-            delete window[callback];
-          } catch (e) {}
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[callback]; } catch (e) {}
         }
 
         window[callback] = function(data) {
@@ -119,27 +83,19 @@
           resolve(data);
         };
 
-        const query =
-          new URLSearchParams({
-            api: 'test',
-            action: action,
-            callback: callback,
-            ...params,
-            _: Date.now().toString()
-          });
+        const query = new URLSearchParams({
+          api: 'test',
+          action: action,
+          callback: callback,
+          ...params,
+          _: Date.now().toString()
+        });
 
-        script.src =
-          API_URL +
-          '?' +
-          query.toString();
+        script.src = API_URL + '?' + query.toString();
 
         script.onerror = function() {
           cleanup();
-          reject(
-            new Error(
-              'Das JSONP-Script konnte nicht geladen werden.'
-            )
-          );
+          reject(new Error('Das JSONP-Script konnte nicht geladen werden.'));
         };
 
         document.head.appendChild(script);
@@ -147,65 +103,38 @@
     }
 
     async function sha256Hex(text) {
-      const data =
-        new TextEncoder().encode(text);
+      const data = new TextEncoder().encode(text);
+      const digest = await crypto.subtle.digest('SHA-256', data);
 
-      const digest =
-        await crypto.subtle.digest(
-          'SHA-256',
-          data
-        );
-
-      return Array
-        .from(
-          new Uint8Array(digest)
-        )
-        .map(
-          b =>
-            b.toString(16)
-              .padStart(2, '0')
-        )
+      return Array.from(new Uint8Array(digest))
+        .map(b => b.toString(16).padStart(2, '0'))
         .join('');
     }
 
     async function hmacSha256Hex(message, keyText) {
-      const key =
-        await crypto.subtle.importKey(
-          'raw',
-          new TextEncoder().encode(keyText),
-          {
-            name: 'HMAC',
-            hash: 'SHA-256'
-          },
-          false,
-          ['sign']
-        );
+      const key = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(keyText),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
 
-      const signature =
-        await crypto.subtle.sign(
-          'HMAC',
-          key,
-          new TextEncoder().encode(message)
-        );
+      const signature = await crypto.subtle.sign(
+        'HMAC',
+        key,
+        new TextEncoder().encode(message)
+      );
 
-      return Array
-        .from(
-          new Uint8Array(signature)
-        )
-        .map(
-          b =>
-            b.toString(16)
-              .padStart(2, '0')
-        )
+      return Array.from(new Uint8Array(signature))
+        .map(b => b.toString(16).padStart(2, '0'))
         .join('');
     }
 
-    async function runPasswordTest() {
-      const password =
-        document.getElementById('password').value;
-
-      const button =
-        document.getElementById('loginButton');
+    async function login() {
+      const password = document.getElementById('password').value;
+      const remember = document.getElementById('remember').checked;
+      const button = document.getElementById('loginButton');
 
       if (!password) {
         showError('Bitte das App-Passwort eingeben.');
@@ -213,13 +142,10 @@
       }
 
       button.disabled = true;
-      setStatus('Passwort wird geprüft ...');
+      setStatus('Anmeldung wird geprüft ...');
 
       try {
-        const challenge =
-          await jsonp(
-            'passwordChallenge'
-          );
+        const challenge = await jsonp('passwordChallenge');
 
         if (!challenge || challenge.success !== true) {
           throw new Error(
@@ -229,74 +155,152 @@
           );
         }
 
-        const passwordKey =
-          await sha256Hex(password);
+        const passwordKey = await sha256Hex(password);
+        const proof = await hmacSha256Hex(challenge.nonce, passwordKey);
 
-        const proof =
-          await hmacSha256Hex(
-            challenge.nonce,
-            passwordKey
-          );
-
-        const result =
-          await jsonp(
-            'passwordVerify',
-            {
-              nonce:
-                challenge.nonce,
-              proof:
-                proof
-            }
-          );
+        const result = await jsonp(
+          'passwordVerify',
+          {
+            nonce: challenge.nonce,
+            proof: proof,
+            remember: remember ? 'true' : 'false'
+          }
+        );
 
         if (!result || result.success !== true) {
           throw new Error(
             result && result.message
               ? result.message
-              : 'Passwortprüfung fehlgeschlagen.'
+              : 'Anmeldung fehlgeschlagen.'
           );
         }
 
-        showOk(
-          '✓ Passwortprüfung funktioniert\n\n' +
-          'Test: ' + (result.test || '') + '\n' +
-          'Meldung: ' + (result.message || '')
+        token = result.token;
+
+        if (remember) {
+          localStorage.setItem(TOKEN_KEY, token);
+          sessionStorage.removeItem(TOKEN_KEY);
+        } else {
+          sessionStorage.setItem(TOKEN_KEY, token);
+          localStorage.removeItem(TOKEN_KEY);
+        }
+
+        showLoggedIn(
+          '✓ Anmeldung erfolgreich\n\n' +
+          'Test: ' + (result.test || '') +
+          '\nSitzung gültig bis: ' + (result.expiresAt || '')
         );
 
       } catch (error) {
-        showError(
-          error.message ||
-          String(error)
-        );
+        showError(error.message || String(error));
       }
 
       button.disabled = false;
     }
 
-    function setStatus(message) {
-      const el =
-        document.getElementById('status');
+    async function checkSession() {
+      if (!token) {
+        showError('Keine Sitzung vorhanden.');
+        return;
+      }
 
+      setStatus('Sitzung wird geprüft ...');
+
+      try {
+        const result = await jsonp(
+          'sessionCheck',
+          { token: token }
+        );
+
+        if (!result || result.success !== true) {
+          throw new Error(
+            result && result.message
+              ? result.message
+              : 'Sitzung ist ungültig.'
+          );
+        }
+
+        showLoggedIn(
+          '✓ Sitzung ist gültig\n\n' +
+          'Test: ' + (result.test || '') +
+          '\nGültig bis: ' + (result.expiresAt || '')
+        );
+
+      } catch (error) {
+        clearToken();
+        showLoggedOut();
+        showError(error.message || String(error));
+      }
+    }
+
+    async function logout() {
+      const oldToken = token;
+
+      clearToken();
+      showLoggedOut();
+      setStatus('Abmeldung wird durchgeführt ...');
+
+      try {
+        const result = await jsonp(
+          'logout',
+          { token: oldToken }
+        );
+
+        if (!result || result.success !== true) {
+          throw new Error(
+            result && result.message
+              ? result.message
+              : 'Abmeldung fehlgeschlagen.'
+          );
+        }
+
+        setStatus('✓ Abgemeldet.');
+
+      } catch (error) {
+        showError(error.message || String(error));
+      }
+    }
+
+    function clearToken() {
+      token = '';
+      localStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(TOKEN_KEY);
+    }
+
+    function showLoggedIn(message) {
+      document.getElementById('loginArea').classList.add('hidden');
+      document.getElementById('sessionArea').classList.remove('hidden');
+      showOk(message);
+    }
+
+    function showLoggedOut() {
+      document.getElementById('loginArea').classList.remove('hidden');
+      document.getElementById('sessionArea').classList.add('hidden');
+      document.getElementById('password').value = '';
+    }
+
+    function setStatus(message) {
+      const el = document.getElementById('status');
       el.className = '';
       el.textContent = message;
     }
 
     function showOk(message) {
-      const el =
-        document.getElementById('status');
-
+      const el = document.getElementById('status');
       el.className = 'ok';
       el.textContent = message;
     }
 
     function showError(message) {
-      const el =
-        document.getElementById('status');
-
+      const el = document.getElementById('status');
       el.className = 'err';
-      el.textContent =
-        '✗ Fehler\n\n' +
-        message;
+      el.textContent = '✗ Fehler\n\n' + message;
+    }
+
+    if (token) {
+      document.getElementById('loginArea').classList.add('hidden');
+      document.getElementById('sessionArea').classList.remove('hidden');
+      checkSession();
     }
   </script>
 </body>
