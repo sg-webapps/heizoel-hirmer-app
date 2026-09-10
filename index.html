@@ -2232,7 +2232,7 @@ function hirmerJsonp_(
             'Zeitüberschreitung bei der Verbindung zum Server.'
           )
         );
-      }, 30000);
+      }, 45000);
 
     function cleanup() {
       window.clearTimeout(timer);
@@ -2657,11 +2657,7 @@ async function hirmerAppCall_(
         fn: functionName,
         args: JSON.stringify(
           args || []
-        ),
-        returnAppData:
-          returnAppData
-            ? 'true'
-            : 'false'
+        )
       }
     );
 
@@ -2685,15 +2681,6 @@ async function hirmerAppCall_(
     }
 
     throw new Error(message);
-  }
-
-  if (
-    returnAppData
-  ) {
-    return {
-      data: result.data,
-      appData: result.appData
-    };
   }
 
   return result.data;
@@ -2785,7 +2772,7 @@ function hirmerApplyAppData_(data) {
 }
 
 
-async function hirmerMutatingCall_(
+async async function hirmerMutatingCall_(
   functionName,
   args
 ) {
@@ -2793,22 +2780,758 @@ async function hirmerMutatingCall_(
     await hirmerAppCall_(
       functionName,
       args,
-      true
+      false
     );
+
+  hirmerApplyLocalMutation_(
+    functionName,
+    args,
+    result
+  );
+
+  return result;
+}
+
+
+function hirmerApplyLocalMutation_(
+  functionName,
+  args,
+  result
+) {
+
+  APP = APP || {};
+  APP.orders = APP.orders || [];
+  APP.cancelledOrders = APP.cancelledOrders || [];
+  APP.customers = APP.customers || [];
+  APP.tankMovements = APP.tankMovements || [];
+  APP.prices = APP.prices || [];
+  APP.vehicle = APP.vehicle || {};
 
   if (
+    functionName === 'saveOrder' &&
     result &&
-    result.appData
+    result.order
   ) {
-    hirmerApplyAppData_(
-      result.appData
+    APP.orders.push(
+      result.order
     );
+
+    hirmerSortOrdersLocal_();
+    hirmerRebuildDashboardLocal_();
+    renderOrders();
+    renderDashboard();
+    renderExportSummary();
+    return;
   }
 
-  return result
-    ? result.data
-    : null;
+  if (
+    functionName === 'cancelOrder'
+  ) {
+    const id =
+      String(args[0] || '');
+
+    const index =
+      APP.orders.findIndex(
+        function(order) {
+          return String(order.id) === id;
+        }
+      );
+
+    if (
+      index !== -1
+    ) {
+      const order =
+        APP.orders.splice(
+          index,
+          1
+        )[0];
+
+      order.status =
+        'Storniert';
+
+      order.cancelledAt =
+        result && result.cancelledAt
+          ? result.cancelledAt
+          : '';
+
+      order.cancelReason =
+        result && result.cancelReason !== undefined
+          ? result.cancelReason
+          : String(args[1] || '');
+
+      APP.cancelledOrders.unshift(
+        order
+      );
+    }
+
+    hirmerRebuildDashboardLocal_();
+    renderOrders();
+    renderCancelledOrders();
+    renderDashboard();
+    renderExportSummary();
+    return;
+  }
+
+  if (
+    functionName === 'restoreCancelledOrder'
+  ) {
+    const id =
+      String(args[0] || '');
+
+    const index =
+      APP.cancelledOrders.findIndex(
+        function(order) {
+          return String(order.id) === id;
+        }
+      );
+
+    if (
+      index !== -1
+    ) {
+      const order =
+        APP.cancelledOrders.splice(
+          index,
+          1
+        )[0];
+
+      order.status =
+        'Offen';
+
+      order.cancelledAt =
+        '';
+
+      order.cancelReason =
+        '';
+
+      APP.orders.push(
+        order
+      );
+
+      hirmerSortOrdersLocal_();
+    }
+
+    hirmerRebuildDashboardLocal_();
+    renderOrders();
+    renderCancelledOrders();
+    renderDashboard();
+    renderExportSummary();
+    return;
+  }
+
+  if (
+    functionName === 'deleteCancelledOrder'
+  ) {
+    const id =
+      String(args[0] || '');
+
+    APP.cancelledOrders =
+      APP.cancelledOrders.filter(
+        function(order) {
+          return String(order.id) !== id;
+        }
+      );
+
+    renderCancelledOrders();
+    return;
+  }
+
+  if (
+    functionName === 'updateOrderStatus'
+  ) {
+    const id =
+      String(args[0] || '');
+
+    const order =
+      APP.orders.find(
+        function(item) {
+          return String(item.id) === id;
+        }
+      );
+
+    if (
+      order
+    ) {
+      order.status =
+        'Geliefert';
+
+      order.deliveredLiters =
+        Number(
+          result && result.deliveredLiters !== undefined
+            ? result.deliveredLiters
+            : args[1]
+        ) || 0;
+
+      order.deliveredAt =
+        result && result.deliveredAt
+          ? result.deliveredAt
+          : '';
+
+      order.tankDeducted =
+        true;
+    }
+
+    if (
+      result &&
+      result.stock !== null &&
+      result.stock !== undefined
+    ) {
+      APP.vehicle.stock =
+        Number(result.stock) || 0;
+
+      APP.vehicle.lastUpdate =
+        result.vehicleLastUpdate || '';
+
+      if (
+        result.tankMovement
+      ) {
+        APP.tankMovements.unshift(
+          result.tankMovement
+        );
+      }
+    }
+
+    hirmerRebuildDashboardLocal_();
+    renderOrders();
+    renderTank();
+    renderTankHistory();
+    renderDashboard();
+    renderExportSummary();
+    return;
+  }
+
+  if (
+    functionName === 'saveCustomer' &&
+    result &&
+    result.customer
+  ) {
+    const id =
+      String(
+        result.customer.id || ''
+      );
+
+    const index =
+      APP.customers.findIndex(
+        function(customer) {
+          return String(customer.id) === id;
+        }
+      );
+
+    if (
+      index === -1
+    ) {
+      APP.customers.push(
+        result.customer
+      );
+    } else {
+      APP.customers[index] =
+        result.customer;
+    }
+
+    renderCustomers();
+    renderCustomerSelect();
+    return;
+  }
+
+  if (
+    functionName === 'addTankLoad'
+  ) {
+    if (
+      result &&
+      result.stock !== undefined
+    ) {
+      APP.vehicle.stock =
+        Number(result.stock) || 0;
+
+      APP.vehicle.lastUpdate =
+        result.lastUpdate || '';
+    }
+
+    if (
+      result &&
+      result.movement
+    ) {
+      APP.tankMovements.unshift(
+        result.movement
+      );
+    }
+
+    hirmerRebuildDashboardLocal_();
+    renderTank();
+    renderTankHistory();
+    renderDashboard();
+    return;
+  }
+
+  if (
+    functionName === 'correctTankStock'
+  ) {
+    if (
+      result &&
+      result.newStock !== undefined
+    ) {
+      APP.vehicle.stock =
+        Number(result.newStock) || 0;
+
+      APP.vehicle.lastUpdate =
+        result.lastUpdate || '';
+    }
+
+    if (
+      result &&
+      result.movement
+    ) {
+      APP.tankMovements.unshift(
+        result.movement
+      );
+    }
+
+    hirmerRebuildDashboardLocal_();
+    renderTank();
+    renderTankHistory();
+    renderDashboard();
+    return;
+  }
+
+  if (
+    functionName === 'savePurchasePrice' &&
+    result &&
+    result.price
+  ) {
+    APP.prices.unshift(
+      result.price
+    );
+
+    APP.priceTable =
+      hirmerBuildPriceTableLocal_(
+        result.price
+      );
+
+    hirmerRebuildDashboardLocal_();
+    renderPrices();
+    renderPriceCalculation();
+    updateOrderPricePreview();
+    renderDashboard();
+    return;
+  }
 }
+
+
+function hirmerSortOrdersLocal_() {
+  APP.orders.sort(
+    function(a, b) {
+      return (
+        hirmerGermanDateToMs_(
+          a.deliveryDate
+        ) -
+        hirmerGermanDateToMs_(
+          b.deliveryDate
+        )
+      );
+    }
+  );
+}
+
+
+function hirmerGermanDateToMs_(
+  text
+) {
+  const parts =
+    String(text || '')
+      .split('.');
+
+  if (
+    parts.length !== 3
+  ) {
+    return 0;
+  }
+
+  return new Date(
+    Number(parts[2]),
+    Number(parts[1]) - 1,
+    Number(parts[0])
+  ).getTime();
+}
+
+
+function hirmerTodayGerman_() {
+  const now =
+    new Date();
+
+  return [
+    String(now.getDate()).padStart(2, '0'),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    now.getFullYear()
+  ].join('.');
+}
+
+
+function hirmerRebuildDashboardLocal_() {
+
+  const now =
+    new Date();
+
+  const todayStart =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+  const sevenDayEnd =
+    new Date(todayStart);
+
+  sevenDayEnd.setDate(
+    sevenDayEnd.getDate() + 6
+  );
+
+  let sold = 0;
+  let delivered = 0;
+  let open = 0;
+  let orderCount = 0;
+  let openOrders = 0;
+  let openNext7Days = 0;
+  let openNext7DaysOrders = 0;
+
+  const futureOpenByDay = {};
+
+  (APP.orders || []).forEach(
+    function(order) {
+
+      const deliveryMs =
+        hirmerGermanDateToMs_(
+          order.deliveryDate
+        );
+
+      if (
+        !deliveryMs
+      ) {
+        return;
+      }
+
+      const deliveryDay =
+        new Date(
+          deliveryMs
+        );
+
+      const status =
+        String(
+          order.status || ''
+        )
+          .trim()
+          .toLowerCase();
+
+      const ordered =
+        Number(
+          order.liters
+        ) || 0;
+
+      const actual =
+        Number(
+          order.deliveredLiters
+        ) || 0;
+
+      if (
+        deliveryDay.getTime() ===
+        todayStart.getTime()
+      ) {
+        sold +=
+          ordered;
+
+        if (
+          status === 'geliefert'
+        ) {
+          delivered +=
+            actual;
+        } else {
+          open +=
+            ordered;
+          openOrders++;
+        }
+
+        orderCount++;
+      }
+
+      if (
+        status !== 'geliefert' &&
+        deliveryDay >= todayStart
+      ) {
+        if (
+          deliveryDay <= sevenDayEnd
+        ) {
+          openNext7Days +=
+            ordered;
+          openNext7DaysOrders++;
+        }
+
+        const key =
+          order.deliveryDate;
+
+        if (
+          !futureOpenByDay[key]
+        ) {
+          futureOpenByDay[key] = {
+            date:
+              deliveryDay,
+            liters:
+              0,
+            orders:
+              0
+          };
+        }
+
+        futureOpenByDay[key].liters +=
+          ordered;
+
+        futureOpenByDay[key].orders++;
+      }
+    }
+  );
+
+  const vehicle =
+    APP.vehicle || {};
+
+  const stock =
+    Number(
+      vehicle.stock
+    ) || 0;
+
+  const capacity =
+    Number(
+      vehicle.capacity
+    ) || 0;
+
+  const futureDays =
+    Object.keys(
+      futureOpenByDay
+    )
+      .map(
+        function(key) {
+          return futureOpenByDay[key];
+        }
+      )
+      .sort(
+        function(a, b) {
+          return a.date - b.date;
+        }
+      );
+
+  let remaining =
+    stock;
+
+  let lastFullyCoveredDate =
+    '';
+
+  let firstShortageDate =
+    '';
+
+  let shortageOnDate =
+    0;
+
+  let allFutureOpenLiters =
+    0;
+
+  futureDays.forEach(
+    function(day) {
+      allFutureOpenLiters +=
+        day.liters;
+    }
+  );
+
+  for (
+    let i = 0;
+    i < futureDays.length;
+    i++
+  ) {
+    const day =
+      futureDays[i];
+
+    if (
+      remaining >=
+      day.liters
+    ) {
+      remaining -=
+        day.liters;
+
+      lastFullyCoveredDate =
+        [
+          String(day.date.getDate()).padStart(2, '0'),
+          String(day.date.getMonth() + 1).padStart(2, '0'),
+          day.date.getFullYear()
+        ].join('.');
+
+    } else {
+      firstShortageDate =
+        [
+          String(day.date.getDate()).padStart(2, '0'),
+          String(day.date.getMonth() + 1).padStart(2, '0'),
+          day.date.getFullYear()
+        ].join('.');
+
+      shortageOnDate =
+        day.liters -
+        remaining;
+
+      remaining =
+        0;
+
+      break;
+    }
+  }
+
+  const latestPrice =
+    APP.prices &&
+    APP.prices.length
+      ? APP.prices[0]
+      : null;
+
+  APP.dashboard = {
+    today:
+      hirmerTodayGerman_(),
+    purchasePrice:
+      latestPrice
+        ? {
+            date:
+              latestPrice.date || '',
+            price:
+              Number(
+                latestPrice.price
+              ) || 0
+          }
+        : null,
+    sold:
+      sold,
+    delivered:
+      delivered,
+    open:
+      open,
+    orderCount:
+      orderCount,
+    openOrders:
+      openOrders,
+    openNext7Days:
+      openNext7Days,
+    openNext7DaysOrders:
+      openNext7DaysOrders,
+    vehicle:
+      vehicle,
+    freeSpace:
+      Math.max(
+        0,
+        capacity - stock
+      ),
+    projectedRemaining:
+      stock - open,
+    shortage:
+      Math.max(
+        0,
+        open - stock
+      ),
+    tankCoverage: {
+      hasOpenOrders:
+        futureDays.length > 0,
+      allCovered:
+        futureDays.length > 0 &&
+        !firstShortageDate,
+      lastFullyCoveredDate:
+        lastFullyCoveredDate,
+      firstShortageDate:
+        firstShortageDate,
+      shortageOnDate:
+        shortageOnDate,
+      remainingAfterAllOpen:
+        futureDays.length > 0 &&
+        !firstShortageDate
+          ? remaining
+          : 0,
+      allFutureOpenLiters:
+        allFutureOpenLiters
+    }
+  };
+}
+
+
+function hirmerBuildPriceTableLocal_(
+  latestPrice
+) {
+
+  const purchase =
+    Number(
+      latestPrice.price
+    ) || 0;
+
+  const defs = [
+    ['500 L',0,500,22.40,20.80],
+    ['500–800 L',500,800,9.10,7.50],
+    ['800–1.500 L',800,1500,4.10,6.50],
+    ['1.500–2.500 L',1500,2500,3.50,5.50],
+    ['2.500–3.500 L',2500,3500,2.90,4.90],
+    ['3.500–4.500 L',3500,4500,2.60,4.60],
+    ['4.500–5.500 L',4500,5500,2.30,4.30],
+    ['5.500–6.500 L',5500,6500,2.00,4.00],
+    ['6.500–7.500 L',6500,7500,1.90,3.90],
+    ['7.500–8.500 L',7500,8500,1.80,3.80],
+    ['8.500–9.500 L',8500,9500,1.70,3.70],
+    ['9.500–12.500 L',9500,12500,1.60,3.60],
+    ['ab 12.500 L',12500,null,1.50,3.50]
+  ];
+
+  function round2(value) {
+    return Math.round(
+      (
+        Number(value) +
+        Number.EPSILON
+      ) *
+      100
+    ) / 100;
+  }
+
+  return {
+    purchasePrice:
+      purchase,
+    purchaseDate:
+      latestPrice.date || '',
+    vat:
+      19,
+    tiers:
+      defs.map(
+        function(def) {
+          const normalNet =
+            round2(
+              purchase +
+              def[3]
+            );
+
+          const premiumNet =
+            round2(
+              purchase +
+              def[4]
+            );
+
+          return {
+            label:
+              def[0],
+            min:
+              def[1],
+            max:
+              def[2],
+            normalNet:
+              normalNet,
+            normalGross:
+              round2(
+                normalNet * 1.19
+              ),
+            premiumNet:
+              premiumNet,
+            premiumGross:
+              round2(
+                premiumNet * 1.19
+              )
+          };
+        }
+      )
+  };
+}
+
 
 
 /* ---------------------------------------------------------
@@ -2934,6 +3657,8 @@ function hirmerInvokeRunner_(
 
   callPromise
     .then(function(data) {
+      setLoading(false);
+
       if (
         typeof successHandler === 'function'
       ) {
@@ -2941,6 +3666,8 @@ function hirmerInvokeRunner_(
       }
     })
     .catch(function(error) {
+      setLoading(false);
+
       if (
         typeof failureHandler === 'function'
       ) {
