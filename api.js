@@ -204,6 +204,68 @@ window.API = (function(){
   }
 
 
+
+  function fireWrite(action, args){
+    args = args || [];
+
+    return new Promise(function(resolve, reject){
+      const cb = "__hh_fire_" + Date.now() + "_" + (++seq);
+      const script = document.createElement("script");
+      const base = window.HEIZOEL_HIRMER_CONFIG.API_URL;
+      const token = getToken();
+
+      if(!token){
+        reject(new Error("Sitzung ist ungültig. Bitte neu anmelden."));
+        return;
+      }
+
+      const params = {
+        v72api: "1",
+        action: action,
+        callback: cb,
+        token: token,
+        _: Date.now()
+      };
+
+      if(args.length){
+        params.args = JSON.stringify(args);
+      }
+
+      const query = new URLSearchParams(params);
+
+      let cleaned = false;
+
+      function cleanup(){
+        if(cleaned) return;
+        cleaned = true;
+        try{ delete window[cb]; }catch(e){ window[cb] = undefined; }
+        if(script.parentNode) script.parentNode.removeChild(script);
+      }
+
+      // Späte Apps-Script-Antwort bewusst ignorieren.
+      window[cb] = function(){ cleanup(); };
+
+      // Auch bei script.onerror kann der Server-Schreibvorgang bereits
+      // erfolgt sein. Entscheidend ist der anschließende Kontroll-Read.
+      script.onerror = function(){};
+
+      script.src =
+        base +
+        (base.indexOf("?") >= 0 ? "&" : "?") +
+        query.toString();
+
+      document.head.appendChild(script);
+
+      // Nicht auf den langsamen Callback warten.
+      setTimeout(function(){
+        resolve({started:true});
+      }, 50);
+
+      setTimeout(cleanup, 60000);
+    });
+  }
+
+
   async function call(
     action,
     args,
@@ -350,6 +412,10 @@ window.API = (function(){
           timeoutMs: 18000
         }
       );
+    },
+
+    fireWrite: function(action, args){
+      return fireWrite(action, args);
     }
   };
 

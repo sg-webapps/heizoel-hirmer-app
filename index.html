@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V72</title>
+  <title>Heizöl Hirmer – V73</title>
 
   <script>
     (function() {
@@ -2566,6 +2566,73 @@ function showPage(pageName) {
    V71 – LOKALE AKTUALISIERUNG NACH SCHREIBAKTIONEN
    loadApp() wird nur beim Start verwendet.
 ========================================================= */
+
+/* =========================================================
+   V73 – FIRE-AND-FORGET + VERIFIZIERUNGS-READ
+========================================================= */
+function v73Sleep_(ms){
+  return new Promise(function(resolve){
+    setTimeout(resolve, ms);
+  });
+}
+
+function v73CreateOrderId_(){
+  return (
+    'A-WEB-' +
+    Date.now().toString(36).toUpperCase() +
+    '-' +
+    Math.random().toString(36).slice(2,8).toUpperCase()
+  );
+}
+
+function v73ApplyFullAppData_(data){
+  if(!data) return;
+  APP = data;
+  renderDashboard();
+  renderOrders();
+  renderCancelledOrders();
+  renderCustomers();
+  renderTank();
+  renderPrices();
+  renderCustomerSelect();
+  renderExportSummary();
+  if(typeof updateOrderPricePreview === 'function'){
+    updateOrderPricePreview();
+  }
+}
+
+async function v73WaitForState_(predicate, maxAttempts){
+  maxAttempts = maxAttempts || 7;
+  let lastData = null;
+  let lastError = null;
+
+  for(let attempt = 0; attempt < maxAttempts; attempt++){
+    await v73Sleep_(attempt === 0 ? 1200 : 1500);
+
+    try{
+      const data = await window.API.read('getAppData', []);
+      lastData = data;
+      if(predicate(data)){
+        return data;
+      }
+    }catch(error){
+      lastError = error;
+    }
+  }
+
+  if(lastData){
+    throw new Error(
+      'Die Änderung wurde noch nicht bestätigt. Bitte auf „Aktualisieren“ klicken.'
+    );
+  }
+
+  throw (
+    lastError ||
+    new Error('Die Änderung konnte noch nicht bestätigt werden.')
+  );
+}
+
+
 function v71SetDone_() {
   setLoading(false);
 }
@@ -2926,6 +2993,7 @@ function updateOrderPricePreview() {
 
 function saveNewOrder() {
   const order = {
+    id: v73CreateOrderId_(),
     customer: value('orderCustomer'),
     deliveryDate: value('orderDate'),
     street: value('orderStreet'),
@@ -2938,28 +3006,47 @@ function saveNewOrder() {
     note: value('orderNote')
   };
 
-  if (!order.customer) { showToast('Bitte einen Kundennamen eingeben.', true); return; }
-  if (!order.deliveryDate) { showToast('Bitte ein Lieferdatum auswählen.', true); return; }
-  if (Number(order.liters) <= 0) { showToast('Bitte die Bestellmenge eingeben.', true); return; }
+  if (!order.customer) {
+    showToast('Bitte einen Kundennamen eingeben.', true);
+    return;
+  }
+
+  if (!order.deliveryDate) {
+    showToast('Bitte ein Lieferdatum auswählen.', true);
+    return;
+  }
+
+  if (Number(order.liters) <= 0) {
+    showToast('Bitte die Bestellmenge eingeben.', true);
+    return;
+  }
 
   setLoading(true);
 
-  google.script.run
-    .withSuccessHandler(function(result) {
-      if (result && result.order) {
-        APP.orders = APP.orders || [];
-        APP.orders.push(result.order);
-        v71SortOrders_();
-        v71RebuildDashboard_();
-        v71RefreshVisibleCore_();
-      }
+  window.API
+    .fireWrite('saveOrder', [order])
+    .then(function() {
+      return v73WaitForState_(function(data) {
+        return (
+          data &&
+          Array.isArray(data.orders) &&
+          data.orders.some(function(item) {
+            return String(item.id) === String(order.id);
+          })
+        );
+      });
+    })
+    .then(function(data) {
+      v73ApplyFullAppData_(data);
       clearOrderForm();
       setLoading(false);
       showToast('Auftrag wurde gespeichert.');
       showPage('orders');
     })
-    .withFailureHandler(handleError)
-    .saveOrder(order);
+    .catch(function(error) {
+      setLoading(false);
+      showToast(error.message || String(error), true);
+    });
 }
 
 function clearOrderForm() {
@@ -3130,28 +3217,33 @@ function closeCancelConfirmModal() {
 function executeCancelOrder() {
   const id = value('cancelOrderId');
   const reason = value('cancelReason');
+
   setLoading(true);
 
-  google.script.run
-    .withSuccessHandler(function(result) {
-      const index = (APP.orders || []).findIndex(function(item){ return item.id === id; });
-      if (index !== -1) {
-        const order = APP.orders.splice(index, 1)[0];
-        order.status = 'Storniert';
-        order.cancelledAt = result && result.cancelledAt ? result.cancelledAt : '';
-        order.cancelReason = reason || '';
-        APP.cancelledOrders = APP.cancelledOrders || [];
-        APP.cancelledOrders.unshift(order);
-      }
-      v71RebuildDashboard_();
-      v71RefreshVisibleCore_();
+  window.API
+    .fireWrite('cancelOrder', [id, reason])
+    .then(function() {
+      return v73WaitForState_(function(data) {
+        return (
+          data &&
+          Array.isArray(data.cancelledOrders) &&
+          data.cancelledOrders.some(function(item) {
+            return String(item.id) === String(id);
+          })
+        );
+      });
+    })
+    .then(function(data) {
+      v73ApplyFullAppData_(data);
       document.getElementById('cancelConfirmModal').classList.remove('active');
       document.getElementById('cancelModal').classList.remove('active');
       setLoading(false);
       showToast('Auftrag wurde storniert.');
     })
-    .withFailureHandler(handleError)
-    .cancelOrder(id, reason);
+    .catch(function(error) {
+      setLoading(false);
+      showToast(error.message || String(error), true);
+    });
 }
 
 function openRestoreConfirmModal(orderId, customer) {
@@ -3166,28 +3258,40 @@ function closeRestoreConfirmModal() {
 
 function executeRestoreCancelledOrder() {
   const orderId = value('restoreOrderId');
+
   setLoading(true);
 
-  google.script.run
-    .withSuccessHandler(function() {
-      const index = (APP.cancelledOrders || []).findIndex(function(item){ return item.id === orderId; });
-      if (index !== -1) {
-        const order = APP.cancelledOrders.splice(index, 1)[0];
-        order.status = 'Offen';
-        order.cancelledAt = '';
-        order.cancelReason = '';
-        APP.orders = APP.orders || [];
-        APP.orders.push(order);
-        v71SortOrders_();
-      }
-      v71RebuildDashboard_();
-      v71RefreshVisibleCore_();
+  window.API
+    .fireWrite('restoreCancelledOrder', [orderId])
+    .then(function() {
+      return v73WaitForState_(function(data) {
+        if(!data) return false;
+
+        const isOpen =
+          Array.isArray(data.orders) &&
+          data.orders.some(function(item) {
+            return String(item.id) === String(orderId);
+          });
+
+        const stillCancelled =
+          Array.isArray(data.cancelledOrders) &&
+          data.cancelledOrders.some(function(item) {
+            return String(item.id) === String(orderId);
+          });
+
+        return isOpen && !stillCancelled;
+      });
+    })
+    .then(function(data) {
+      v73ApplyFullAppData_(data);
       closeRestoreConfirmModal();
       setLoading(false);
       showToast('Storno wurde rückgängig gemacht.');
     })
-    .withFailureHandler(handleError)
-    .restoreCancelledOrder(orderId);
+    .catch(function(error) {
+      setLoading(false);
+      showToast(error.message || String(error), true);
+    });
 }
 
 function openDeleteConfirmModal(orderId, customer) {
@@ -3202,18 +3306,32 @@ function closeDeleteConfirmModal() {
 
 function executeDeleteCancelledOrder() {
   const orderId = value('deleteOrderId');
+
   setLoading(true);
 
-  google.script.run
-    .withSuccessHandler(function() {
-      APP.cancelledOrders = (APP.cancelledOrders || []).filter(function(item){ return item.id !== orderId; });
-      renderCancelledOrders();
+  window.API
+    .fireWrite('deleteCancelledOrder', [orderId])
+    .then(function() {
+      return v73WaitForState_(function(data) {
+        return (
+          data &&
+          Array.isArray(data.cancelledOrders) &&
+          !data.cancelledOrders.some(function(item) {
+            return String(item.id) === String(orderId);
+          })
+        );
+      });
+    })
+    .then(function(data) {
+      v73ApplyFullAppData_(data);
       closeDeleteConfirmModal();
       setLoading(false);
       showToast('Stornierter Auftrag wurde endgültig gelöscht.');
     })
-    .withFailureHandler(handleError)
-    .deleteCancelledOrder(orderId);
+    .catch(function(error) {
+      setLoading(false);
+      showToast(error.message || String(error), true);
+    });
 }
 
 function renderCustomers() {
