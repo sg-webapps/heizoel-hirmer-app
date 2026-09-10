@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V73</title>
+  <title>Heizöl Hirmer – V74</title>
 
   <script>
     (function() {
@@ -2570,6 +2570,88 @@ function showPage(pageName) {
 /* =========================================================
    V73 – FIRE-AND-FORGET + VERIFIZIERUNGS-READ
 ========================================================= */
+
+const HIRMER_V74_SNAPSHOT_KEY = 'hirmer_v74_app_snapshot';
+
+function v74SaveSnapshot_(){
+  try{
+    localStorage.setItem(
+      HIRMER_V74_SNAPSHOT_KEY,
+      JSON.stringify(APP || {})
+    );
+  }catch(e){}
+}
+
+function v74LoadSnapshot_(){
+  try{
+    const raw = localStorage.getItem(HIRMER_V74_SNAPSHOT_KEY);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    return data && typeof data === 'object' ? data : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function v74ApplySnapshot_(data){
+  if(!data) return false;
+
+  APP = data;
+
+  renderDashboard();
+  renderOrders();
+  renderCancelledOrders();
+  renderCustomers();
+  renderTank();
+  renderPrices();
+  renderCustomerSelect();
+  renderExportSummary();
+
+  if(typeof updateOrderPricePreview === 'function'){
+    updateOrderPricePreview();
+  }
+
+  return true;
+}
+
+function v74BackgroundSync_(verifyFn){
+  window.API
+    .read('getAppData', [])
+    .then(function(data){
+      if(!data) return;
+
+      if(
+        typeof verifyFn === 'function' &&
+        !verifyFn(data)
+      ){
+        // Noch nicht angekommen: ein zweiter Hintergrundversuch,
+        // ohne die Bedienoberfläche zu blockieren.
+        setTimeout(function(){
+          v74BackgroundSync_(verifyFn);
+        }, 2500);
+        return;
+      }
+
+      v74ApplySnapshot_(data);
+      v74SaveSnapshot_();
+    })
+    .catch(function(error){
+      // Hintergrundfehler blockieren die App nicht.
+      console.warn(
+        'Hintergrund-Synchronisierung:',
+        error
+      );
+    });
+}
+
+function v74OptimisticDone_(message){
+  v74SaveSnapshot_();
+  setLoading(false);
+  if(message){
+    showToast(message);
+  }
+}
+
 function v73Sleep_(ms){
   return new Promise(function(resolve){
     setTimeout(resolve, ms);
@@ -2762,25 +2844,38 @@ function v71BuildPriceTable_(priceRecord) {
 }
 
 function loadApp() {
+
+  const snapshot =
+    v74LoadSnapshot_();
+
+  if(
+    snapshot
+  ){
+    v74ApplySnapshot_(snapshot);
+    setLoading(false);
+
+    // Frische Daten kommen im Hintergrund.
+    v74BackgroundSync_();
+    return;
+  }
+
   setLoading(true);
 
-  google.script.run
-    .withSuccessHandler(function(data) {
-      APP = data || {};
-      APP.dashboard = APP.dashboard || {};
-      APP.customers = APP.customers || [];
-      APP.orders = APP.orders || [];
-      APP.cancelledOrders = APP.cancelledOrders || [];
-      APP.vehicle = APP.vehicle || {};
-      APP.prices = APP.prices || [];
-      APP.priceTable = APP.priceTable || { tiers: [] };
-      APP.tankMovements = APP.tankMovements || [];
-
-      renderAll();
+  window.API
+    .read(
+      'getAppData',
+      []
+    )
+    .then(function(data){
+      APP = data;
+      v74ApplySnapshot_(data);
+      v74SaveSnapshot_();
       setLoading(false);
     })
-    .withFailureHandler(handleError)
-    .getAppData();
+    .catch(function(error){
+      setLoading(false);
+      handleError(error);
+    });
 }
 
 function renderAll() {
@@ -3001,9 +3096,17 @@ function saveNewOrder() {
     city: value('orderCity'),
     phone: value('orderPhone'),
     product: value('orderProduct'),
-    liters: value('orderLiters'),
-    salePrice: value('orderPrice'),
-    note: value('orderNote')
+    liters: Number(value('orderLiters')) || 0,
+    salePrice: Number(value('orderPrice')) || 0,
+    note: value('orderNote'),
+    createdAt: '',
+    deliveredLiters: 0,
+    status: 'Offen',
+    deliveredAt: '',
+    tankDeducted: false,
+    priceTier: '',
+    cancelledAt: '',
+    cancelReason: ''
   };
 
   if (!order.customer) {
@@ -3016,34 +3119,40 @@ function saveNewOrder() {
     return;
   }
 
-  if (Number(order.liters) <= 0) {
+  if (order.liters <= 0) {
     showToast('Bitte die Bestellmenge eingeben.', true);
     return;
   }
 
   setLoading(true);
 
+  // Sofort lokal sichtbar.
+  APP.orders = APP.orders || [];
+  APP.orders.push(order);
+  v71SortOrders_();
+  v71RebuildDashboard_();
+  renderOrders();
+  renderDashboard();
+  renderExportSummary();
+  clearOrderForm();
+  showPage('orders');
+
   window.API
     .fireWrite('saveOrder', [order])
-    .then(function() {
-      return v73WaitForState_(function(data) {
+    .then(function(){
+      v74OptimisticDone_('Auftrag wurde gespeichert.');
+
+      v74BackgroundSync_(function(data){
         return (
           data &&
           Array.isArray(data.orders) &&
-          data.orders.some(function(item) {
+          data.orders.some(function(item){
             return String(item.id) === String(order.id);
           })
         );
       });
     })
-    .then(function(data) {
-      v73ApplyFullAppData_(data);
-      clearOrderForm();
-      setLoading(false);
-      showToast('Auftrag wurde gespeichert.');
-      showPage('orders');
-    })
-    .catch(function(error) {
+    .catch(function(error){
       setLoading(false);
       showToast(error.message || String(error), true);
     });
@@ -3220,27 +3329,45 @@ function executeCancelOrder() {
 
   setLoading(true);
 
+  const index =
+    (APP.orders || []).findIndex(function(item){
+      return String(item.id) === String(id);
+    });
+
+  if(index !== -1){
+    const order = APP.orders.splice(index, 1)[0];
+    order.status = 'Storniert';
+    order.cancelReason = reason || '';
+    order.cancelledAt = '';
+    APP.cancelledOrders = APP.cancelledOrders || [];
+    APP.cancelledOrders.unshift(order);
+  }
+
+  v71RebuildDashboard_();
+  renderOrders();
+  renderCancelledOrders();
+  renderDashboard();
+  renderExportSummary();
+
+  document.getElementById('cancelConfirmModal').classList.remove('active');
+  document.getElementById('cancelModal').classList.remove('active');
+
   window.API
     .fireWrite('cancelOrder', [id, reason])
-    .then(function() {
-      return v73WaitForState_(function(data) {
+    .then(function(){
+      v74OptimisticDone_('Auftrag wurde storniert.');
+
+      v74BackgroundSync_(function(data){
         return (
           data &&
           Array.isArray(data.cancelledOrders) &&
-          data.cancelledOrders.some(function(item) {
+          data.cancelledOrders.some(function(item){
             return String(item.id) === String(id);
           })
         );
       });
     })
-    .then(function(data) {
-      v73ApplyFullAppData_(data);
-      document.getElementById('cancelConfirmModal').classList.remove('active');
-      document.getElementById('cancelModal').classList.remove('active');
-      setLoading(false);
-      showToast('Auftrag wurde storniert.');
-    })
-    .catch(function(error) {
+    .catch(function(error){
       setLoading(false);
       showToast(error.message || String(error), true);
     });
@@ -3261,34 +3388,52 @@ function executeRestoreCancelledOrder() {
 
   setLoading(true);
 
+  const index =
+    (APP.cancelledOrders || []).findIndex(function(item){
+      return String(item.id) === String(orderId);
+    });
+
+  if(index !== -1){
+    const order = APP.cancelledOrders.splice(index, 1)[0];
+    order.status = 'Offen';
+    order.cancelledAt = '';
+    order.cancelReason = '';
+    APP.orders = APP.orders || [];
+    APP.orders.push(order);
+    v71SortOrders_();
+  }
+
+  v71RebuildDashboard_();
+  renderOrders();
+  renderCancelledOrders();
+  renderDashboard();
+  renderExportSummary();
+  closeRestoreConfirmModal();
+
   window.API
     .fireWrite('restoreCancelledOrder', [orderId])
-    .then(function() {
-      return v73WaitForState_(function(data) {
-        if(!data) return false;
+    .then(function(){
+      v74OptimisticDone_('Storno wurde rückgängig gemacht.');
 
+      v74BackgroundSync_(function(data){
         const isOpen =
+          data &&
           Array.isArray(data.orders) &&
-          data.orders.some(function(item) {
+          data.orders.some(function(item){
             return String(item.id) === String(orderId);
           });
 
         const stillCancelled =
+          data &&
           Array.isArray(data.cancelledOrders) &&
-          data.cancelledOrders.some(function(item) {
+          data.cancelledOrders.some(function(item){
             return String(item.id) === String(orderId);
           });
 
         return isOpen && !stillCancelled;
       });
     })
-    .then(function(data) {
-      v73ApplyFullAppData_(data);
-      closeRestoreConfirmModal();
-      setLoading(false);
-      showToast('Storno wurde rückgängig gemacht.');
-    })
-    .catch(function(error) {
+    .catch(function(error){
       setLoading(false);
       showToast(error.message || String(error), true);
     });
@@ -3309,26 +3454,32 @@ function executeDeleteCancelledOrder() {
 
   setLoading(true);
 
+  APP.cancelledOrders =
+    (APP.cancelledOrders || []).filter(function(item){
+      return String(item.id) !== String(orderId);
+    });
+
+  renderCancelledOrders();
+  closeDeleteConfirmModal();
+
   window.API
     .fireWrite('deleteCancelledOrder', [orderId])
-    .then(function() {
-      return v73WaitForState_(function(data) {
+    .then(function(){
+      v74OptimisticDone_(
+        'Stornierter Auftrag wurde endgültig gelöscht.'
+      );
+
+      v74BackgroundSync_(function(data){
         return (
           data &&
           Array.isArray(data.cancelledOrders) &&
-          !data.cancelledOrders.some(function(item) {
+          !data.cancelledOrders.some(function(item){
             return String(item.id) === String(orderId);
           })
         );
       });
     })
-    .then(function(data) {
-      v73ApplyFullAppData_(data);
-      closeDeleteConfirmModal();
-      setLoading(false);
-      showToast('Stornierter Auftrag wurde endgültig gelöscht.');
-    })
-    .catch(function(error) {
+    .catch(function(error){
       setLoading(false);
       showToast(error.message || String(error), true);
     });
@@ -4113,11 +4264,32 @@ document.addEventListener('DOMContentLoaded', function() {
     b.type = 'button';
     b.className = 'nav-button';
     b.textContent = 'Aktualisieren';
-    b.addEventListener('click', loadApp);
+    b.addEventListener('click', v74ManualRefresh_);
     nav.appendChild(b);
   }
 });
 </script>
 
+<script>
+function v74ManualRefresh_(){
+  setLoading(true);
+
+  window.API
+    .read('getAppData', [])
+    .then(function(data){
+      v74ApplySnapshot_(data);
+      v74SaveSnapshot_();
+      setLoading(false);
+      showToast('Daten wurden aktualisiert.');
+    })
+    .catch(function(error){
+      setLoading(false);
+      showToast(
+        error.message || String(error),
+        true
+      );
+    });
+}
+</script>
 </body>
 </html>
