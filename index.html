@@ -2232,7 +2232,7 @@ function hirmerJsonp_(
             'Zeitüberschreitung bei der Verbindung zum Server.'
           )
         );
-      }, 20000);
+      }, 30000);
 
     function cleanup() {
       window.clearTimeout(timer);
@@ -2706,29 +2706,81 @@ function hirmerApplyAppData_(data) {
     return;
   }
 
-  // Gleiche Aktualisierungslogik wie in loadApp(), aber ohne
-  // zusätzlichen Serveraufruf.
-  APP = data;
-  renderDashboard();
-  renderOrders();
-  renderCancelledOrders();
-  renderCustomers();
-  renderTank();
-  renderPrices();
-  fillCustomerSelect();
+  // V68: Nur die vom Backend gelieferten Teilbereiche werden
+  // in den vorhandenen APP-Zustand übernommen.
+  APP = Object.assign(
+    {},
+    APP || {},
+    data
+  );
 
   if (
-    typeof updateOverview === 'function'
+    Object.prototype.hasOwnProperty.call(
+      data,
+      'dashboard'
+    )
   ) {
-    updateOverview();
+    renderDashboard();
   }
 
   if (
-    typeof renderAll === 'function'
+    Object.prototype.hasOwnProperty.call(
+      data,
+      'orders'
+    )
   ) {
-    try {
-      renderAll();
-    } catch (error) {}
+    renderOrders();
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      data,
+      'cancelledOrders'
+    )
+  ) {
+    renderCancelledOrders();
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      data,
+      'customers'
+    )
+  ) {
+    renderCustomers();
+    fillCustomerSelect();
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      data,
+      'vehicle'
+    ) ||
+    Object.prototype.hasOwnProperty.call(
+      data,
+      'tankMovements'
+    )
+  ) {
+    renderTank();
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      data,
+      'prices'
+    ) ||
+    Object.prototype.hasOwnProperty.call(
+      data,
+      'priceTable'
+    )
+  ) {
+    renderPrices();
+
+    if (
+      typeof updateOrderPricePreview === 'function'
+    ) {
+      updateOrderPricePreview();
+    }
   }
 }
 
