@@ -2640,7 +2640,8 @@ function hirmerClearToken_() {
 
 async function hirmerAppCall_(
   functionName,
-  args
+  args,
+  returnAppData
 ) {
   if (!HIRMER_TOKEN) {
     throw new Error(
@@ -2656,7 +2657,11 @@ async function hirmerAppCall_(
         fn: functionName,
         args: JSON.stringify(
           args || []
-        )
+        ),
+        returnAppData:
+          returnAppData
+            ? 'true'
+            : 'false'
       }
     );
 
@@ -2682,7 +2687,75 @@ async function hirmerAppCall_(
     throw new Error(message);
   }
 
+  if (
+    returnAppData
+  ) {
+    return {
+      data: result.data,
+      appData: result.appData
+    };
+  }
+
   return result.data;
+}
+
+
+
+function hirmerApplyAppData_(data) {
+  if (!data) {
+    return;
+  }
+
+  // Gleiche Aktualisierungslogik wie in loadApp(), aber ohne
+  // zusätzlichen Serveraufruf.
+  APP = data;
+  renderDashboard();
+  renderOrders();
+  renderCancelledOrders();
+  renderCustomers();
+  renderTank();
+  renderPrices();
+  fillCustomerSelect();
+
+  if (
+    typeof updateOverview === 'function'
+  ) {
+    updateOverview();
+  }
+
+  if (
+    typeof renderAll === 'function'
+  ) {
+    try {
+      renderAll();
+    } catch (error) {}
+  }
+}
+
+
+async function hirmerMutatingCall_(
+  functionName,
+  args
+) {
+  const result =
+    await hirmerAppCall_(
+      functionName,
+      args,
+      true
+    );
+
+  if (
+    result &&
+    result.appData
+  ) {
+    hirmerApplyAppData_(
+      result.appData
+    );
+  }
+
+  return result
+    ? result.data
+    : null;
 }
 
 
@@ -2784,10 +2857,30 @@ function hirmerInvokeRunner_(
   successHandler,
   failureHandler
 ) {
-  hirmerAppCall_(
-    functionName,
-    args
-  )
+  const mutatingFunctions = {
+    saveOrder: true,
+    updateOrderStatus: true,
+    cancelOrder: true,
+    restoreCancelledOrder: true,
+    deleteCancelledOrder: true,
+    saveCustomer: true,
+    addTankLoad: true,
+    correctTankStock: true,
+    savePurchasePrice: true
+  };
+
+  const callPromise =
+    mutatingFunctions[functionName]
+      ? hirmerMutatingCall_(
+          functionName,
+          args
+        )
+      : hirmerAppCall_(
+          functionName,
+          args
+        );
+
+  callPromise
     .then(function(data) {
       if (
         typeof successHandler === 'function'
@@ -3113,7 +3206,6 @@ function saveNewOrder() {
     .withSuccessHandler(function() {
       clearOrderForm();
       showToast('Auftrag wurde gespeichert.');
-      loadApp();
       showPage('orders');
     })
     .withFailureHandler(handleError)
@@ -3159,7 +3251,6 @@ function finishDelivery() {
     .withSuccessHandler(function() {
       closeDeliveryModal();
       showToast('Lieferung wurde abgeschlossen.');
-      loadApp();
     })
     .withFailureHandler(handleError)
     .updateOrderStatus(id, liters);
@@ -3215,7 +3306,6 @@ function executeCancelOrder() {
       document.getElementById('cancelConfirmModal').classList.remove('active');
       document.getElementById('cancelModal').classList.remove('active');
       showToast('Auftrag wurde storniert.');
-      loadApp();
     })
     .withFailureHandler(handleError)
     .cancelOrder(id, reason);
@@ -3239,7 +3329,6 @@ function executeRestoreCancelledOrder() {
     .withSuccessHandler(function() {
       closeRestoreConfirmModal();
       showToast('Storno wurde rückgängig gemacht.');
-      loadApp();
     })
     .withFailureHandler(handleError)
     .restoreCancelledOrder(orderId);
@@ -3263,7 +3352,6 @@ function executeDeleteCancelledOrder() {
     .withSuccessHandler(function() {
       closeDeleteConfirmModal();
       showToast('Stornierter Auftrag wurde endgültig gelöscht.');
-      loadApp();
     })
     .withFailureHandler(handleError)
     .deleteCancelledOrder(orderId);
@@ -3372,7 +3460,6 @@ function saveCustomerForm() {
     .withSuccessHandler(function() {
       closeCustomerModal();
       showToast('Kunde wurde gespeichert.');
-      loadApp();
     })
     .withFailureHandler(handleError)
     .saveCustomer(customer);
@@ -3413,7 +3500,6 @@ function saveTankLoad() {
       document.getElementById('tankLoadLiters').value = '';
       document.getElementById('tankLoadNote').value = '';
       showToast('Beladung wurde gebucht.');
-      loadApp();
     })
     .withFailureHandler(handleError)
     .addTankLoad(liters, note);
@@ -3458,7 +3544,6 @@ function saveTankCorrection() {
       document.getElementById('tankCorrectionStock').value = '';
       document.getElementById('tankCorrectionNote').value = '';
       showToast('Tankbestand wurde korrigiert.');
-      loadApp();
     })
     .withFailureHandler(handleError)
     .correctTankStock(newStock, note);
@@ -3533,7 +3618,6 @@ function saveNewPurchasePrice() {
       document.getElementById('purchasePriceValue').value = '';
       document.getElementById('purchasePriceNote').value = '';
       showToast('Einkaufspreis wurde gespeichert.');
-      loadApp();
     })
     .withFailureHandler(handleError)
     .savePurchasePrice(date, price, note);
