@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer</title>
+  <title>Heizöl Hirmer – V72</title>
 
   <script>
     (function() {
@@ -26,11 +26,7 @@
 
   <style>
     * { box-sizing: border-box; }
-    html {
-      -webkit-text-size-adjust: 100%;
-      scrollbar-gutter: stable;
-      overflow-y: scroll;
-    }
+    html { -webkit-text-size-adjust: 100%; }
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
@@ -1591,10 +1587,9 @@
     }
 
 
-
     /* =====================================================
-       V63 – LOGIN VOR DER ORIGINALEN V41-APP
-       V41 selbst bleibt optisch unverändert.
+       V70 – DIREKTE APPS-SCRIPT-VERSION MIT LOGIN
+       Keine GitHub/API-Brücke, keine JSONP-Aufrufe.
     ===================================================== */
     body.auth-locked > *:not(#hirmerAuthGate) {
       display: none !important;
@@ -1710,6 +1705,11 @@
       color: #fff !important;
     }
 
+    html {
+      scrollbar-gutter: stable;
+      overflow-y: scroll;
+    }
+
     .mobile-device .hirmer-auth-box {
       margin: 14px auto;
       padding: 24px 18px;
@@ -1743,7 +1743,6 @@
 </head>
 
 <body class="auth-locked">
-
 <div id="hirmerAuthGate">
   <div class="hirmer-auth-box">
     <div class="hirmer-auth-title">Heizöl Hirmer</div>
@@ -2183,246 +2182,43 @@
 <div id="toast" class="toast"></div>
 
 
+<script src="config.js"></script>
+<script src="api.js"></script>
+
 <script>
-/* =========================================================
-   V63 – GITHUB/API-BRÜCKE + V6.2 LOGIN
-   Die vorhandenen google.script.run-Aufrufe der V41 bleiben
-   unverändert und werden hier kompatibel nachgebildet.
-========================================================= */
-
-const HIRMER_API_URL =
-  'https://script.google.com/macros/s/AKfycbziVUuLFjHZ_fV1ERLMKX9iHhkX_5nF_-FCaXHffsxq9Y3iL6IzpFGCxuyohmYs6gCwwQ/exec';
-
-const HIRMER_TOKEN_KEY =
-  'hirmer_v62_token';
-
-let HIRMER_TOKEN =
-  localStorage.getItem(HIRMER_TOKEN_KEY) ||
-  sessionStorage.getItem(HIRMER_TOKEN_KEY) ||
-  '';
+const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
+const HIRMER_AUTH_SESSION_KEY = 'hirmer_v72_auth_session';
 
 let HIRMER_APP_STARTED = false;
 
-
-function hirmerJsonp_(
-  action,
-  params
-) {
-  params = params || {};
-
-  return new Promise(function(resolve, reject) {
-    const callback =
-      '__hirmerApi_' +
-      Date.now() +
-      '_' +
-      Math.floor(Math.random() * 1000000);
-
-    const script =
-      document.createElement('script');
-
-    let finished = false;
-
-    const timer =
-      window.setTimeout(function() {
-        if (finished) return;
-        finished = true;
-        cleanup();
-        reject(
-          new Error(
-            'Zeitüberschreitung bei der Verbindung zum Server.'
-          )
-        );
-      }, 45000);
-
-    function cleanup() {
-      window.clearTimeout(timer);
-
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-
-      try {
-        delete window[callback];
-      } catch (error) {}
-    }
-
-    window[callback] = function(data) {
-      if (finished) return;
-      finished = true;
-      cleanup();
-      resolve(data);
-    };
-
-    script.onerror = function() {
-      if (finished) return;
-      finished = true;
-      cleanup();
-      reject(
-        new Error(
-          'Die Verbindung zum Apps-Script-Backend ist fehlgeschlagen.'
-        )
-      );
-    };
-
-    const query =
-      new URLSearchParams(
-        Object.assign(
-          {
-            api: 'v62',
-            action: action,
-            callback: callback,
-            _: String(Date.now())
-          },
-          params
-        )
-      );
-
-    script.src =
-      HIRMER_API_URL +
-      '?' +
-      query.toString();
-
-    document.head.appendChild(script);
-  });
-}
-
-
 async function hirmerSha256Hex_(text) {
-  const bytes =
-    new TextEncoder().encode(text);
+  const bytes = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
 
-  const digest =
-    await crypto.subtle.digest(
-      'SHA-256',
-      bytes
-    );
-
-  return Array.from(
-    new Uint8Array(digest)
-  )
+  return Array.from(new Uint8Array(digest))
     .map(function(byte) {
-      return byte
-        .toString(16)
-        .padStart(2, '0');
+      return byte.toString(16).padStart(2, '0');
     })
     .join('');
 }
 
-
-async function hirmerHmacSha256Hex_(
-  message,
-  keyText
-) {
-  const key =
-    await crypto.subtle.importKey(
-      'raw',
-      new TextEncoder().encode(keyText),
-      {
-        name: 'HMAC',
-        hash: 'SHA-256'
-      },
-      false,
-      ['sign']
-    );
-
-  const signature =
-    await crypto.subtle.sign(
-      'HMAC',
-      key,
-      new TextEncoder().encode(message)
-    );
-
-  return Array.from(
-    new Uint8Array(signature)
-  )
-    .map(function(byte) {
-      return byte
-        .toString(16)
-        .padStart(2, '0');
-    })
-    .join('');
-}
-
-
-function hirmerAuthStatus_(
-  message,
-  type
-) {
-  const box =
-    document.getElementById(
-      'hirmerAuthStatus'
-    );
-
-  if (!box) return;
-
-  box.className =
-    type || 'active';
-
-  box.textContent =
-    message || '';
-}
-
-
-async function hirmerAuthInit() {
-  if (!HIRMER_TOKEN) {
-    hirmerShowLogin_();
-    return;
-  }
-
-  hirmerAuthStatus_(
-    'Gespeicherte Anmeldung wird geprüft …',
-    'active'
-  );
-
-  try {
-    const result =
-      await hirmerJsonp_(
-        'sessionCheck',
-        {
-          token: HIRMER_TOKEN
-        }
-      );
-
-    if (
-      !result ||
-      result.success !== true
-    ) {
-      throw new Error(
-        result && result.message
-          ? result.message
-          : 'Sitzung ist ungültig.'
-      );
-    }
-
+function hirmerAuthInit() {
+  if (window.API && window.API.hasToken()) {
     hirmerOpenApp_();
-
-  } catch (error) {
-    hirmerClearToken_();
+  } else {
     hirmerShowLogin_();
-    hirmerAuthStatus_(
-      'Bitte erneut anmelden.\n\n' +
-      (error.message || String(error)),
-      'err'
-    );
   }
 }
-
 
 async function hirmerAuthLogin() {
   const password =
-    document.getElementById(
-      'hirmerAuthPassword'
-    ).value;
+    document.getElementById('hirmerAuthPassword').value;
 
   const remember =
-    document.getElementById(
-      'hirmerAuthRemember'
-    ).checked;
+    document.getElementById('hirmerAuthRemember').checked;
 
   const button =
-    document.getElementById(
-      'hirmerAuthLoginButton'
-    );
+    document.getElementById('hirmerAuthLoginButton');
 
   if (!password) {
     hirmerAuthStatus_(
@@ -2440,78 +2236,13 @@ async function hirmerAuthLogin() {
   );
 
   try {
-    const challenge =
-      await hirmerJsonp_(
-        'passwordChallenge'
-      );
+    const passwordHash =
+      await hirmerSha256Hex_(password);
 
-    if (
-      !challenge ||
-      challenge.success !== true
-    ) {
-      throw new Error(
-        challenge && challenge.message
-          ? challenge.message
-          : 'Anmeldung konnte nicht gestartet werden.'
-      );
-    }
-
-    const passwordKey =
-      await hirmerSha256Hex_(
-        password
-      );
-
-    const proof =
-      await hirmerHmacSha256Hex_(
-        challenge.nonce,
-        passwordKey
-      );
-
-    const result =
-      await hirmerJsonp_(
-        'passwordVerify',
-        {
-          nonce: challenge.nonce,
-          challengeExp: challenge.challengeExp,
-          challengeSig: challenge.challengeSig,
-          proof: proof,
-          remember: remember
-            ? 'true'
-            : 'false'
-        }
-      );
-
-    if (
-      !result ||
-      result.success !== true
-    ) {
-      throw new Error(
-        result && result.message
-          ? result.message
-          : 'Anmeldung fehlgeschlagen.'
-      );
-    }
-
-    HIRMER_TOKEN =
-      result.token;
-
-    if (remember) {
-      localStorage.setItem(
-        HIRMER_TOKEN_KEY,
-        HIRMER_TOKEN
-      );
-      sessionStorage.removeItem(
-        HIRMER_TOKEN_KEY
-      );
-    } else {
-      sessionStorage.setItem(
-        HIRMER_TOKEN_KEY,
-        HIRMER_TOKEN
-      );
-      localStorage.removeItem(
-        HIRMER_TOKEN_KEY
-      );
-    }
+    await window.API.login(
+      passwordHash,
+      remember
+    );
 
     document.getElementById(
       'hirmerAuthPassword'
@@ -2529,6 +2260,20 @@ async function hirmerAuthLogin() {
   button.disabled = false;
 }
 
+function hirmerAuthStatus_(message, type) {
+  const box =
+    document.getElementById(
+      'hirmerAuthStatus'
+    );
+
+  if (!box) return;
+
+  box.className =
+    type || 'active';
+
+  box.textContent =
+    message || '';
+}
 
 function hirmerOpenApp_() {
   document.body.classList.remove(
@@ -2554,7 +2299,6 @@ function hirmerOpenApp_() {
   }
 }
 
-
 function hirmerShowLogin_() {
   document.body.classList.add(
     'auth-locked'
@@ -2571,7 +2315,6 @@ function hirmerShowLogin_() {
     );
   }
 }
-
 
 function hirmerEnsureLogoutButton_() {
   if (
@@ -2614,10 +2357,11 @@ function hirmerEnsureLogoutButton_() {
   nav.appendChild(button);
 }
 
-
 function hirmerLogout() {
-  hirmerClearToken_();
+  window.API.logoutLocal();
+
   HIRMER_APP_STARTED = false;
+
   hirmerShowLogin_();
 
   hirmerAuthStatus_(
@@ -2627,917 +2371,15 @@ function hirmerLogout() {
 }
 
 
-function hirmerClearToken_() {
-  HIRMER_TOKEN = '';
-  localStorage.removeItem(
-    HIRMER_TOKEN_KEY
-  );
-  sessionStorage.removeItem(
-    HIRMER_TOKEN_KEY
-  );
-}
-
-
-async function hirmerAppCall_(
-  functionName,
-  args,
-  returnAppData
-) {
-  if (!HIRMER_TOKEN) {
-    throw new Error(
-      'Sitzung ist abgelaufen. Bitte erneut anmelden.'
-    );
-  }
-
-  const result =
-    await hirmerJsonp_(
-      'appCall',
-      {
-        token: HIRMER_TOKEN,
-        fn: functionName,
-        args: JSON.stringify(
-          args || []
-        )
-      }
-    );
-
-  if (
-    !result ||
-    result.success !== true
-  ) {
-    const message =
-      result && result.message
-        ? result.message
-        : 'Serveraufruf fehlgeschlagen.';
-
-    if (
-      /Sitzung|angemeldet/i.test(
-        message
-      )
-    ) {
-      hirmerClearToken_();
-      HIRMER_APP_STARTED = false;
-      hirmerShowLogin_();
-    }
-
-    throw new Error(message);
-  }
-
-  return result.data;
-}
-
-
-
-function hirmerApplyAppData_(data) {
-  if (!data) {
-    return;
-  }
-
-  // V68: Nur die vom Backend gelieferten Teilbereiche werden
-  // in den vorhandenen APP-Zustand übernommen.
-  APP = Object.assign(
-    {},
-    APP || {},
-    data
-  );
-
-  if (
-    Object.prototype.hasOwnProperty.call(
-      data,
-      'dashboard'
-    )
-  ) {
-    renderDashboard();
-  }
-
-  if (
-    Object.prototype.hasOwnProperty.call(
-      data,
-      'orders'
-    )
-  ) {
-    renderOrders();
-  }
-
-  if (
-    Object.prototype.hasOwnProperty.call(
-      data,
-      'cancelledOrders'
-    )
-  ) {
-    renderCancelledOrders();
-  }
-
-  if (
-    Object.prototype.hasOwnProperty.call(
-      data,
-      'customers'
-    )
-  ) {
-    renderCustomers();
-    fillCustomerSelect();
-  }
-
-  if (
-    Object.prototype.hasOwnProperty.call(
-      data,
-      'vehicle'
-    ) ||
-    Object.prototype.hasOwnProperty.call(
-      data,
-      'tankMovements'
-    )
-  ) {
-    renderTank();
-  }
-
-  if (
-    Object.prototype.hasOwnProperty.call(
-      data,
-      'prices'
-    ) ||
-    Object.prototype.hasOwnProperty.call(
-      data,
-      'priceTable'
-    )
-  ) {
-    renderPrices();
-
-    if (
-      typeof updateOrderPricePreview === 'function'
-    ) {
-      updateOrderPricePreview();
-    }
-  }
-}
-
-
-async async function hirmerMutatingCall_(
-  functionName,
-  args
-) {
-  const result =
-    await hirmerAppCall_(
-      functionName,
-      args,
-      false
-    );
-
-  hirmerApplyLocalMutation_(
-    functionName,
-    args,
-    result
-  );
-
-  return result;
-}
-
-
-function hirmerApplyLocalMutation_(
-  functionName,
-  args,
-  result
-) {
-
-  APP = APP || {};
-  APP.orders = APP.orders || [];
-  APP.cancelledOrders = APP.cancelledOrders || [];
-  APP.customers = APP.customers || [];
-  APP.tankMovements = APP.tankMovements || [];
-  APP.prices = APP.prices || [];
-  APP.vehicle = APP.vehicle || {};
-
-  if (
-    functionName === 'saveOrder' &&
-    result &&
-    result.order
-  ) {
-    APP.orders.push(
-      result.order
-    );
-
-    hirmerSortOrdersLocal_();
-    hirmerRebuildDashboardLocal_();
-    renderOrders();
-    renderDashboard();
-    renderExportSummary();
-    return;
-  }
-
-  if (
-    functionName === 'cancelOrder'
-  ) {
-    const id =
-      String(args[0] || '');
-
-    const index =
-      APP.orders.findIndex(
-        function(order) {
-          return String(order.id) === id;
-        }
-      );
-
-    if (
-      index !== -1
-    ) {
-      const order =
-        APP.orders.splice(
-          index,
-          1
-        )[0];
-
-      order.status =
-        'Storniert';
-
-      order.cancelledAt =
-        result && result.cancelledAt
-          ? result.cancelledAt
-          : '';
-
-      order.cancelReason =
-        result && result.cancelReason !== undefined
-          ? result.cancelReason
-          : String(args[1] || '');
-
-      APP.cancelledOrders.unshift(
-        order
-      );
-    }
-
-    hirmerRebuildDashboardLocal_();
-    renderOrders();
-    renderCancelledOrders();
-    renderDashboard();
-    renderExportSummary();
-    return;
-  }
-
-  if (
-    functionName === 'restoreCancelledOrder'
-  ) {
-    const id =
-      String(args[0] || '');
-
-    const index =
-      APP.cancelledOrders.findIndex(
-        function(order) {
-          return String(order.id) === id;
-        }
-      );
-
-    if (
-      index !== -1
-    ) {
-      const order =
-        APP.cancelledOrders.splice(
-          index,
-          1
-        )[0];
-
-      order.status =
-        'Offen';
-
-      order.cancelledAt =
-        '';
-
-      order.cancelReason =
-        '';
-
-      APP.orders.push(
-        order
-      );
-
-      hirmerSortOrdersLocal_();
-    }
-
-    hirmerRebuildDashboardLocal_();
-    renderOrders();
-    renderCancelledOrders();
-    renderDashboard();
-    renderExportSummary();
-    return;
-  }
-
-  if (
-    functionName === 'deleteCancelledOrder'
-  ) {
-    const id =
-      String(args[0] || '');
-
-    APP.cancelledOrders =
-      APP.cancelledOrders.filter(
-        function(order) {
-          return String(order.id) !== id;
-        }
-      );
-
-    renderCancelledOrders();
-    return;
-  }
-
-  if (
-    functionName === 'updateOrderStatus'
-  ) {
-    const id =
-      String(args[0] || '');
-
-    const order =
-      APP.orders.find(
-        function(item) {
-          return String(item.id) === id;
-        }
-      );
-
-    if (
-      order
-    ) {
-      order.status =
-        'Geliefert';
-
-      order.deliveredLiters =
-        Number(
-          result && result.deliveredLiters !== undefined
-            ? result.deliveredLiters
-            : args[1]
-        ) || 0;
-
-      order.deliveredAt =
-        result && result.deliveredAt
-          ? result.deliveredAt
-          : '';
-
-      order.tankDeducted =
-        true;
-    }
-
-    if (
-      result &&
-      result.stock !== null &&
-      result.stock !== undefined
-    ) {
-      APP.vehicle.stock =
-        Number(result.stock) || 0;
-
-      APP.vehicle.lastUpdate =
-        result.vehicleLastUpdate || '';
-
-      if (
-        result.tankMovement
-      ) {
-        APP.tankMovements.unshift(
-          result.tankMovement
-        );
-      }
-    }
-
-    hirmerRebuildDashboardLocal_();
-    renderOrders();
-    renderTank();
-    renderTankHistory();
-    renderDashboard();
-    renderExportSummary();
-    return;
-  }
-
-  if (
-    functionName === 'saveCustomer' &&
-    result &&
-    result.customer
-  ) {
-    const id =
-      String(
-        result.customer.id || ''
-      );
-
-    const index =
-      APP.customers.findIndex(
-        function(customer) {
-          return String(customer.id) === id;
-        }
-      );
-
-    if (
-      index === -1
-    ) {
-      APP.customers.push(
-        result.customer
-      );
-    } else {
-      APP.customers[index] =
-        result.customer;
-    }
-
-    renderCustomers();
-    renderCustomerSelect();
-    return;
-  }
-
-  if (
-    functionName === 'addTankLoad'
-  ) {
-    if (
-      result &&
-      result.stock !== undefined
-    ) {
-      APP.vehicle.stock =
-        Number(result.stock) || 0;
-
-      APP.vehicle.lastUpdate =
-        result.lastUpdate || '';
-    }
-
-    if (
-      result &&
-      result.movement
-    ) {
-      APP.tankMovements.unshift(
-        result.movement
-      );
-    }
-
-    hirmerRebuildDashboardLocal_();
-    renderTank();
-    renderTankHistory();
-    renderDashboard();
-    return;
-  }
-
-  if (
-    functionName === 'correctTankStock'
-  ) {
-    if (
-      result &&
-      result.newStock !== undefined
-    ) {
-      APP.vehicle.stock =
-        Number(result.newStock) || 0;
-
-      APP.vehicle.lastUpdate =
-        result.lastUpdate || '';
-    }
-
-    if (
-      result &&
-      result.movement
-    ) {
-      APP.tankMovements.unshift(
-        result.movement
-      );
-    }
-
-    hirmerRebuildDashboardLocal_();
-    renderTank();
-    renderTankHistory();
-    renderDashboard();
-    return;
-  }
-
-  if (
-    functionName === 'savePurchasePrice' &&
-    result &&
-    result.price
-  ) {
-    APP.prices.unshift(
-      result.price
-    );
-
-    APP.priceTable =
-      hirmerBuildPriceTableLocal_(
-        result.price
-      );
-
-    hirmerRebuildDashboardLocal_();
-    renderPrices();
-    renderPriceCalculation();
-    updateOrderPricePreview();
-    renderDashboard();
-    return;
-  }
-}
-
-
-function hirmerSortOrdersLocal_() {
-  APP.orders.sort(
-    function(a, b) {
-      return (
-        hirmerGermanDateToMs_(
-          a.deliveryDate
-        ) -
-        hirmerGermanDateToMs_(
-          b.deliveryDate
-        )
-      );
-    }
-  );
-}
-
-
-function hirmerGermanDateToMs_(
-  text
-) {
-  const parts =
-    String(text || '')
-      .split('.');
-
-  if (
-    parts.length !== 3
-  ) {
-    return 0;
-  }
-
-  return new Date(
-    Number(parts[2]),
-    Number(parts[1]) - 1,
-    Number(parts[0])
-  ).getTime();
-}
-
-
-function hirmerTodayGerman_() {
-  const now =
-    new Date();
-
-  return [
-    String(now.getDate()).padStart(2, '0'),
-    String(now.getMonth() + 1).padStart(2, '0'),
-    now.getFullYear()
-  ].join('.');
-}
-
-
-function hirmerRebuildDashboardLocal_() {
-
-  const now =
-    new Date();
-
-  const todayStart =
-    new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
-
-  const sevenDayEnd =
-    new Date(todayStart);
-
-  sevenDayEnd.setDate(
-    sevenDayEnd.getDate() + 6
-  );
-
-  let sold = 0;
-  let delivered = 0;
-  let open = 0;
-  let orderCount = 0;
-  let openOrders = 0;
-  let openNext7Days = 0;
-  let openNext7DaysOrders = 0;
-
-  const futureOpenByDay = {};
-
-  (APP.orders || []).forEach(
-    function(order) {
-
-      const deliveryMs =
-        hirmerGermanDateToMs_(
-          order.deliveryDate
-        );
-
-      if (
-        !deliveryMs
-      ) {
-        return;
-      }
-
-      const deliveryDay =
-        new Date(
-          deliveryMs
-        );
-
-      const status =
-        String(
-          order.status || ''
-        )
-          .trim()
-          .toLowerCase();
-
-      const ordered =
-        Number(
-          order.liters
-        ) || 0;
-
-      const actual =
-        Number(
-          order.deliveredLiters
-        ) || 0;
-
-      if (
-        deliveryDay.getTime() ===
-        todayStart.getTime()
-      ) {
-        sold +=
-          ordered;
-
-        if (
-          status === 'geliefert'
-        ) {
-          delivered +=
-            actual;
-        } else {
-          open +=
-            ordered;
-          openOrders++;
-        }
-
-        orderCount++;
-      }
-
-      if (
-        status !== 'geliefert' &&
-        deliveryDay >= todayStart
-      ) {
-        if (
-          deliveryDay <= sevenDayEnd
-        ) {
-          openNext7Days +=
-            ordered;
-          openNext7DaysOrders++;
-        }
-
-        const key =
-          order.deliveryDate;
-
-        if (
-          !futureOpenByDay[key]
-        ) {
-          futureOpenByDay[key] = {
-            date:
-              deliveryDay,
-            liters:
-              0,
-            orders:
-              0
-          };
-        }
-
-        futureOpenByDay[key].liters +=
-          ordered;
-
-        futureOpenByDay[key].orders++;
-      }
-    }
-  );
-
-  const vehicle =
-    APP.vehicle || {};
-
-  const stock =
-    Number(
-      vehicle.stock
-    ) || 0;
-
-  const capacity =
-    Number(
-      vehicle.capacity
-    ) || 0;
-
-  const futureDays =
-    Object.keys(
-      futureOpenByDay
-    )
-      .map(
-        function(key) {
-          return futureOpenByDay[key];
-        }
-      )
-      .sort(
-        function(a, b) {
-          return a.date - b.date;
-        }
-      );
-
-  let remaining =
-    stock;
-
-  let lastFullyCoveredDate =
-    '';
-
-  let firstShortageDate =
-    '';
-
-  let shortageOnDate =
-    0;
-
-  let allFutureOpenLiters =
-    0;
-
-  futureDays.forEach(
-    function(day) {
-      allFutureOpenLiters +=
-        day.liters;
-    }
-  );
-
-  for (
-    let i = 0;
-    i < futureDays.length;
-    i++
-  ) {
-    const day =
-      futureDays[i];
-
-    if (
-      remaining >=
-      day.liters
-    ) {
-      remaining -=
-        day.liters;
-
-      lastFullyCoveredDate =
-        [
-          String(day.date.getDate()).padStart(2, '0'),
-          String(day.date.getMonth() + 1).padStart(2, '0'),
-          day.date.getFullYear()
-        ].join('.');
-
-    } else {
-      firstShortageDate =
-        [
-          String(day.date.getDate()).padStart(2, '0'),
-          String(day.date.getMonth() + 1).padStart(2, '0'),
-          day.date.getFullYear()
-        ].join('.');
-
-      shortageOnDate =
-        day.liters -
-        remaining;
-
-      remaining =
-        0;
-
-      break;
-    }
-  }
-
-  const latestPrice =
-    APP.prices &&
-    APP.prices.length
-      ? APP.prices[0]
-      : null;
-
-  APP.dashboard = {
-    today:
-      hirmerTodayGerman_(),
-    purchasePrice:
-      latestPrice
-        ? {
-            date:
-              latestPrice.date || '',
-            price:
-              Number(
-                latestPrice.price
-              ) || 0
-          }
-        : null,
-    sold:
-      sold,
-    delivered:
-      delivered,
-    open:
-      open,
-    orderCount:
-      orderCount,
-    openOrders:
-      openOrders,
-    openNext7Days:
-      openNext7Days,
-    openNext7DaysOrders:
-      openNext7DaysOrders,
-    vehicle:
-      vehicle,
-    freeSpace:
-      Math.max(
-        0,
-        capacity - stock
-      ),
-    projectedRemaining:
-      stock - open,
-    shortage:
-      Math.max(
-        0,
-        open - stock
-      ),
-    tankCoverage: {
-      hasOpenOrders:
-        futureDays.length > 0,
-      allCovered:
-        futureDays.length > 0 &&
-        !firstShortageDate,
-      lastFullyCoveredDate:
-        lastFullyCoveredDate,
-      firstShortageDate:
-        firstShortageDate,
-      shortageOnDate:
-        shortageOnDate,
-      remainingAfterAllOpen:
-        futureDays.length > 0 &&
-        !firstShortageDate
-          ? remaining
-          : 0,
-      allFutureOpenLiters:
-        allFutureOpenLiters
-    }
-  };
-}
-
-
-function hirmerBuildPriceTableLocal_(
-  latestPrice
-) {
-
-  const purchase =
-    Number(
-      latestPrice.price
-    ) || 0;
-
-  const defs = [
-    ['500 L',0,500,22.40,20.80],
-    ['500–800 L',500,800,9.10,7.50],
-    ['800–1.500 L',800,1500,4.10,6.50],
-    ['1.500–2.500 L',1500,2500,3.50,5.50],
-    ['2.500–3.500 L',2500,3500,2.90,4.90],
-    ['3.500–4.500 L',3500,4500,2.60,4.60],
-    ['4.500–5.500 L',4500,5500,2.30,4.30],
-    ['5.500–6.500 L',5500,6500,2.00,4.00],
-    ['6.500–7.500 L',6500,7500,1.90,3.90],
-    ['7.500–8.500 L',7500,8500,1.80,3.80],
-    ['8.500–9.500 L',8500,9500,1.70,3.70],
-    ['9.500–12.500 L',9500,12500,1.60,3.60],
-    ['ab 12.500 L',12500,null,1.50,3.50]
-  ];
-
-  function round2(value) {
-    return Math.round(
-      (
-        Number(value) +
-        Number.EPSILON
-      ) *
-      100
-    ) / 100;
-  }
-
-  return {
-    purchasePrice:
-      purchase,
-    purchaseDate:
-      latestPrice.date || '',
-    vat:
-      19,
-    tiers:
-      defs.map(
-        function(def) {
-          const normalNet =
-            round2(
-              purchase +
-              def[3]
-            );
-
-          const premiumNet =
-            round2(
-              purchase +
-              def[4]
-            );
-
-          return {
-            label:
-              def[0],
-            min:
-              def[1],
-            max:
-              def[2],
-            normalNet:
-              normalNet,
-            normalGross:
-              round2(
-                normalNet * 1.19
-              ),
-            premiumNet:
-              premiumNet,
-            premiumGross:
-              round2(
-                premiumNet * 1.19
-              )
-          };
-        }
-      )
-  };
-}
-
-
-
 /* ---------------------------------------------------------
-   Kompatible Nachbildung von google.script.run
+   V72-Kompatibilität:
+   Die bewährte V71-Oberfläche kann ihre vorhandenen
+   google.script.run-Aufrufe behalten. Intern werden sie direkt
+   auf die schlanke Straßenfest-artige API abgebildet.
 --------------------------------------------------------- */
-window.google = window.google || {};
+
+window.google =
+  window.google || {};
 
 window.google.script =
   window.google.script || {};
@@ -3551,7 +2393,7 @@ window.google.script.run =
           property === 'withSuccessHandler'
         ) {
           return function(handler) {
-            return hirmerRunner_(
+            return v72Runner_(
               handler,
               null
             );
@@ -3562,7 +2404,7 @@ window.google.script.run =
           property === 'withFailureHandler'
         ) {
           return function(handler) {
-            return hirmerRunner_(
+            return v72Runner_(
               null,
               handler
             );
@@ -3570,7 +2412,7 @@ window.google.script.run =
         }
 
         return function() {
-          return hirmerInvokeRunner_(
+          return v72Invoke_(
             String(property),
             Array.from(arguments),
             null,
@@ -3581,8 +2423,7 @@ window.google.script.run =
     }
   );
 
-
-function hirmerRunner_(
+function v72Runner_(
   successHandler,
   failureHandler
 ) {
@@ -3594,7 +2435,7 @@ function hirmerRunner_(
           property === 'withSuccessHandler'
         ) {
           return function(handler) {
-            return hirmerRunner_(
+            return v72Runner_(
               handler,
               failureHandler
             );
@@ -3605,7 +2446,7 @@ function hirmerRunner_(
           property === 'withFailureHandler'
         ) {
           return function(handler) {
-            return hirmerRunner_(
+            return v72Runner_(
               successHandler,
               handler
             );
@@ -3613,7 +2454,7 @@ function hirmerRunner_(
         }
 
         return function() {
-          return hirmerInvokeRunner_(
+          return v72Invoke_(
             String(property),
             Array.from(arguments),
             successHandler,
@@ -3625,51 +2466,50 @@ function hirmerRunner_(
   );
 }
 
-
-function hirmerInvokeRunner_(
-  functionName,
+function v72Invoke_(
+  action,
   args,
   successHandler,
   failureHandler
 ) {
-  const mutatingFunctions = {
-    saveOrder: true,
-    updateOrderStatus: true,
-    cancelOrder: true,
-    restoreCancelledOrder: true,
-    deleteCancelledOrder: true,
-    saveCustomer: true,
-    addTankLoad: true,
-    correctTankStock: true,
-    savePurchasePrice: true
-  };
+  const isRead =
+    action === 'getAppData';
 
-  const callPromise =
-    mutatingFunctions[functionName]
-      ? hirmerMutatingCall_(
-          functionName,
+  const promise =
+    isRead
+      ? window.API.read(
+          action,
           args
         )
-      : hirmerAppCall_(
-          functionName,
+      : window.API.write(
+          action,
           args
         );
 
-  callPromise
+  promise
     .then(function(data) {
-      setLoading(false);
-
       if (
-        typeof successHandler === 'function'
+        typeof successHandler ===
+        'function'
       ) {
         successHandler(data);
       }
     })
     .catch(function(error) {
-      setLoading(false);
 
       if (
-        typeof failureHandler === 'function'
+        /Sitzung/i.test(
+          error.message || ''
+        )
+      ) {
+        window.API.logoutLocal();
+        HIRMER_APP_STARTED = false;
+        hirmerShowLogin_();
+      }
+
+      if (
+        typeof failureHandler ===
+        'function'
       ) {
         failureHandler(error);
       } else {
@@ -3718,6 +2558,140 @@ function showPage(pageName) {
   if (document.documentElement.classList.contains('mobile-device')) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+}
+
+
+
+/* =========================================================
+   V71 – LOKALE AKTUALISIERUNG NACH SCHREIBAKTIONEN
+   loadApp() wird nur beim Start verwendet.
+========================================================= */
+function v71SetDone_() {
+  setLoading(false);
+}
+
+function v71SortOrders_() {
+  APP.orders.sort(function(a, b) {
+    return v71GermanDateToMs_(a.deliveryDate) - v71GermanDateToMs_(b.deliveryDate);
+  });
+}
+
+function v71GermanDateToMs_(text) {
+  const parts = String(text || '').split('.');
+  if (parts.length !== 3) return 0;
+  return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0])).getTime();
+}
+
+function v71RefreshVisibleCore_() {
+  renderOrders();
+  renderCancelledOrders();
+  renderDashboard();
+  renderExportSummary();
+}
+
+function v71RebuildDashboard_() {
+  const d = APP.dashboard || {};
+  const vehicle = APP.vehicle || d.vehicle || {};
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const end7 = new Date(todayStart);
+  end7.setDate(end7.getDate() + 6);
+
+  let sold = 0, delivered = 0, open = 0, orderCount = 0, openOrders = 0;
+  let open7 = 0, open7Orders = 0;
+  const future = {};
+
+  (APP.orders || []).forEach(function(order) {
+    const ms = v71GermanDateToMs_(order.deliveryDate);
+    if (!ms) return;
+    const day = new Date(ms);
+    const status = String(order.status || '').toLowerCase();
+    const liters = Number(order.liters) || 0;
+    const actual = Number(order.deliveredLiters) || 0;
+
+    if (day.getTime() === todayStart.getTime()) {
+      sold += liters;
+      orderCount++;
+      if (status === 'geliefert') delivered += actual;
+      else { open += liters; openOrders++; }
+    }
+
+    if (status !== 'geliefert' && day >= todayStart) {
+      if (day <= end7) { open7 += liters; open7Orders++; }
+      const key = order.deliveryDate;
+      if (!future[key]) future[key] = { date: day, liters: 0 };
+      future[key].liters += liters;
+    }
+  });
+
+  const stock = Number(vehicle.stock) || 0;
+  const capacity = Number(vehicle.capacity) || 0;
+  const futureDays = Object.keys(future).map(function(k){ return future[k]; }).sort(function(a,b){ return a.date-b.date; });
+  let remaining = stock;
+  let lastCovered = '';
+  let firstShortage = '';
+  let shortageOnDate = 0;
+  let allFuture = 0;
+
+  futureDays.forEach(function(day){ allFuture += day.liters; });
+
+  for (let i = 0; i < futureDays.length; i++) {
+    const day = futureDays[i];
+    const dateText = String(day.date.getDate()).padStart(2,'0') + '.' + String(day.date.getMonth()+1).padStart(2,'0') + '.' + day.date.getFullYear();
+    if (remaining >= day.liters) {
+      remaining -= day.liters;
+      lastCovered = dateText;
+    } else {
+      firstShortage = dateText;
+      shortageOnDate = day.liters - remaining;
+      remaining = 0;
+      break;
+    }
+  }
+
+  APP.dashboard = Object.assign({}, d, {
+    vehicle: vehicle,
+    sold: sold,
+    delivered: delivered,
+    open: open,
+    orderCount: orderCount,
+    openOrders: openOrders,
+    openNext7Days: open7,
+    openNext7DaysOrders: open7Orders,
+    freeSpace: Math.max(0, capacity - stock),
+    projectedRemaining: stock - open,
+    shortage: Math.max(0, open - stock),
+    tankCoverage: {
+      hasOpenOrders: futureDays.length > 0,
+      allCovered: futureDays.length > 0 && !firstShortage,
+      lastFullyCoveredDate: lastCovered,
+      firstShortageDate: firstShortage,
+      shortageOnDate: shortageOnDate,
+      remainingAfterAllOpen: futureDays.length > 0 && !firstShortage ? remaining : 0,
+      allFutureOpenLiters: allFuture
+    }
+  });
+}
+
+function v71BuildPriceTable_(priceRecord) {
+  const purchase = Number(priceRecord.price) || 0;
+  const defs = [
+    ['500 L',0,500,22.40,20.80],['500–800 L',500,800,9.10,7.50],['800–1.500 L',800,1500,4.10,6.50],
+    ['1.500–2.500 L',1500,2500,3.50,5.50],['2.500–3.500 L',2500,3500,2.90,4.90],['3.500–4.500 L',3500,4500,2.60,4.60],
+    ['4.500–5.500 L',4500,5500,2.30,4.30],['5.500–6.500 L',5500,6500,2.00,4.00],['6.500–7.500 L',6500,7500,1.90,3.90],
+    ['7.500–8.500 L',7500,8500,1.80,3.80],['8.500–9.500 L',8500,9500,1.70,3.70],['9.500–12.500 L',9500,12500,1.60,3.60],
+    ['ab 12.500 L',12500,null,1.50,3.50]
+  ];
+  function r(v){ return Math.round((Number(v)+Number.EPSILON)*100)/100; }
+  return {
+    purchasePrice: purchase,
+    purchaseDate: priceRecord.date || '',
+    vat: 19,
+    tiers: defs.map(function(x){
+      const nn=r(purchase+x[3]), pn=r(purchase+x[4]);
+      return {label:x[0],min:x[1],max:x[2],normalNet:nn,normalGross:r(nn*1.19),premiumNet:pn,premiumGross:r(pn*1.19)};
+    })
+  };
 }
 
 function loadApp() {
@@ -3964,26 +2938,23 @@ function saveNewOrder() {
     note: value('orderNote')
   };
 
-  if (!order.customer) {
-    showToast('Bitte einen Kundennamen eingeben.', true);
-    return;
-  }
-
-  if (!order.deliveryDate) {
-    showToast('Bitte ein Lieferdatum auswählen.', true);
-    return;
-  }
-
-  if (Number(order.liters) <= 0) {
-    showToast('Bitte die Bestellmenge eingeben.', true);
-    return;
-  }
+  if (!order.customer) { showToast('Bitte einen Kundennamen eingeben.', true); return; }
+  if (!order.deliveryDate) { showToast('Bitte ein Lieferdatum auswählen.', true); return; }
+  if (Number(order.liters) <= 0) { showToast('Bitte die Bestellmenge eingeben.', true); return; }
 
   setLoading(true);
 
   google.script.run
-    .withSuccessHandler(function() {
+    .withSuccessHandler(function(result) {
+      if (result && result.order) {
+        APP.orders = APP.orders || [];
+        APP.orders.push(result.order);
+        v71SortOrders_();
+        v71RebuildDashboard_();
+        v71RefreshVisibleCore_();
+      }
       clearOrderForm();
+      setLoading(false);
       showToast('Auftrag wurde gespeichert.');
       showPage('orders');
     })
@@ -4016,23 +2987,105 @@ function closeDeliveryModal() {
 }
 
 function finishDelivery() {
-  const id = value('deliveryOrderId');
-  const liters = Number(value('deliveryLiters'));
+  const id =
+    value('deliveryOrderId');
 
-  if (!liters || liters <= 0) {
-    showToast('Bitte die gelieferte Menge eingeben.', true);
+  const liters =
+    Number(
+      value('deliveryLiters')
+    );
+
+  if (
+    !liters ||
+    liters <= 0
+  ) {
+    showToast(
+      'Bitte die gelieferte Menge eingeben.',
+      true
+    );
     return;
   }
 
   setLoading(true);
 
   google.script.run
-    .withSuccessHandler(function() {
+    .withSuccessHandler(function(result) {
+
+      const order =
+        (APP.orders || [])
+          .find(
+            function(item) {
+              return item.id === id;
+            }
+          );
+
+      if (
+        order
+      ) {
+        order.status =
+          'Geliefert';
+
+        order.deliveredLiters =
+          liters;
+
+        order.deliveredAt =
+          result &&
+          result.deliveredAt
+            ? result.deliveredAt
+            : '';
+
+        order.tankDeducted =
+          true;
+      }
+
+      if (
+        result &&
+        result.stock !== null &&
+        result.stock !== undefined
+      ) {
+        APP.vehicle =
+          APP.vehicle || {};
+
+        APP.vehicle.stock =
+          Number(
+            result.stock
+          ) || 0;
+
+        APP.vehicle.lastUpdate =
+          result.vehicleLastUpdate || '';
+
+        APP.tankMovements =
+          APP.tankMovements || [];
+
+        if (
+          result.tankMovement
+        ) {
+          APP.tankMovements.unshift(
+            result.tankMovement
+          );
+        }
+      }
+
+      v71RebuildDashboard_();
+      renderOrders();
+      renderTank();
+      renderTankHistory();
+      renderDashboard();
+      renderExportSummary();
+
       closeDeliveryModal();
-      showToast('Lieferung wurde abgeschlossen.');
+
+      setLoading(false);
+
+      showToast(
+        'Lieferung wurde abgeschlossen.'
+      );
     })
     .withFailureHandler(handleError)
-    .updateOrderStatus(id, liters);
+    .updateOrderStatus(
+      id,
+      liters
+    );
 }
 
 function openCancelModal(orderId) {
@@ -4077,13 +3130,24 @@ function closeCancelConfirmModal() {
 function executeCancelOrder() {
   const id = value('cancelOrderId');
   const reason = value('cancelReason');
-
   setLoading(true);
 
   google.script.run
-    .withSuccessHandler(function() {
+    .withSuccessHandler(function(result) {
+      const index = (APP.orders || []).findIndex(function(item){ return item.id === id; });
+      if (index !== -1) {
+        const order = APP.orders.splice(index, 1)[0];
+        order.status = 'Storniert';
+        order.cancelledAt = result && result.cancelledAt ? result.cancelledAt : '';
+        order.cancelReason = reason || '';
+        APP.cancelledOrders = APP.cancelledOrders || [];
+        APP.cancelledOrders.unshift(order);
+      }
+      v71RebuildDashboard_();
+      v71RefreshVisibleCore_();
       document.getElementById('cancelConfirmModal').classList.remove('active');
       document.getElementById('cancelModal').classList.remove('active');
+      setLoading(false);
       showToast('Auftrag wurde storniert.');
     })
     .withFailureHandler(handleError)
@@ -4106,7 +3170,20 @@ function executeRestoreCancelledOrder() {
 
   google.script.run
     .withSuccessHandler(function() {
+      const index = (APP.cancelledOrders || []).findIndex(function(item){ return item.id === orderId; });
+      if (index !== -1) {
+        const order = APP.cancelledOrders.splice(index, 1)[0];
+        order.status = 'Offen';
+        order.cancelledAt = '';
+        order.cancelReason = '';
+        APP.orders = APP.orders || [];
+        APP.orders.push(order);
+        v71SortOrders_();
+      }
+      v71RebuildDashboard_();
+      v71RefreshVisibleCore_();
       closeRestoreConfirmModal();
+      setLoading(false);
       showToast('Storno wurde rückgängig gemacht.');
     })
     .withFailureHandler(handleError)
@@ -4129,7 +3206,10 @@ function executeDeleteCancelledOrder() {
 
   google.script.run
     .withSuccessHandler(function() {
+      APP.cancelledOrders = (APP.cancelledOrders || []).filter(function(item){ return item.id !== orderId; });
+      renderCancelledOrders();
       closeDeleteConfirmModal();
+      setLoading(false);
       showToast('Stornierter Auftrag wurde endgültig gelöscht.');
     })
     .withFailureHandler(handleError)
@@ -4228,16 +3308,21 @@ function saveCustomerForm() {
     note: value('customerNote')
   };
 
-  if (!customer.name) {
-    showToast('Bitte einen Kundennamen eingeben.', true);
-    return;
-  }
-
+  if (!customer.name) { showToast('Bitte einen Kundennamen eingeben.', true); return; }
   setLoading(true);
 
   google.script.run
-    .withSuccessHandler(function() {
+    .withSuccessHandler(function(result) {
+      if (result && result.customer) {
+        APP.customers = APP.customers || [];
+        const idx = APP.customers.findIndex(function(item){ return item.id === result.customer.id; });
+        if (idx === -1) APP.customers.push(result.customer);
+        else APP.customers[idx] = result.customer;
+        renderCustomers();
+        renderCustomerSelect();
+      }
       closeCustomerModal();
+      setLoading(false);
       showToast('Kunde wurde gespeichert.');
     })
     .withFailureHandler(handleError)
@@ -4268,64 +3353,137 @@ function saveTankLoad() {
   const note = value('tankLoadNote');
 
   if (!liters || liters <= 0) {
-    showToast('Bitte eine gültige Literzahl eingeben.', true);
+    showToast(
+      'Bitte eine gültige Literzahl eingeben.',
+      true
+    );
     return;
   }
 
   setLoading(true);
 
   google.script.run
-    .withSuccessHandler(function() {
-      document.getElementById('tankLoadLiters').value = '';
-      document.getElementById('tankLoadNote').value = '';
-      showToast('Beladung wurde gebucht.');
+    .withSuccessHandler(function(result) {
+
+      APP.vehicle =
+        APP.vehicle || {};
+
+      APP.vehicle.stock =
+        Number(result.stock) || 0;
+
+      APP.vehicle.lastUpdate =
+        result.lastUpdate || '';
+
+      APP.tankMovements =
+        APP.tankMovements || [];
+
+      if (
+        result.movement
+      ) {
+        APP.tankMovements.unshift(
+          result.movement
+        );
+      }
+
+      v71RebuildDashboard_();
+      renderTank();
+      renderTankHistory();
+      renderDashboard();
+
+      document.getElementById(
+        'tankLoadLiters'
+      ).value = '';
+
+      document.getElementById(
+        'tankLoadNote'
+      ).value = '';
+
+      setLoading(false);
+
+      showToast(
+        'Tankbeladung wurde gespeichert.'
+      );
     })
     .withFailureHandler(handleError)
-    .addTankLoad(liters, note);
+    .addTankLoad(
+      liters,
+      note
+    );
 }
 
 function saveTankCorrection() {
-  const newStock = Number(value('tankCorrectionStock'));
-  const note = value('tankCorrectionNote');
+  const newStock =
+    Number(
+      value('tankCorrectionStock')
+    );
 
-  if (!Number.isFinite(newStock) || newStock < 0) {
-    showToast('Bitte den tatsächlichen Tankbestand eingeben.', true);
+  const note =
+    value('tankCorrectionNote');
+
+  if (
+    !Number.isFinite(newStock) ||
+    newStock < 0
+  ) {
+    showToast(
+      'Bitte einen gültigen Tankbestand eingeben.',
+      true
+    );
     return;
   }
-
-  const currentStock = APP.vehicle ? Number(APP.vehicle.stock) || 0 : 0;
-  const capacity = APP.vehicle ? Number(APP.vehicle.capacity) || 0 : 0;
-
-  if (newStock > capacity) {
-    showToast('Der neue Bestand kann die Tankkapazität von ' + formatLiters(capacity) + ' nicht überschreiten.', true);
-    return;
-  }
-
-  const difference = newStock - currentStock;
-
-  if (difference === 0) {
-    showToast('Der eingegebene Bestand entspricht bereits dem aktuellen Bestand.', true);
-    return;
-  }
-
-  const text =
-    'Aktueller Bestand: ' + currentStock.toLocaleString('de-DE') + ' L\n\n' +
-    'Neuer tatsächlicher Bestand: ' + newStock.toLocaleString('de-DE') + ' L\n\n' +
-    'Differenz: ' + (difference > 0 ? '+' : '') + difference.toLocaleString('de-DE') + ' L\n\n' +
-    'Soll diese Bestandskorrektur wirklich gebucht werden?';
-
-  if (!confirm(text)) return;
 
   setLoading(true);
 
   google.script.run
-    .withSuccessHandler(function() {
-      document.getElementById('tankCorrectionStock').value = '';
-      document.getElementById('tankCorrectionNote').value = '';
-      showToast('Tankbestand wurde korrigiert.');
+    .withSuccessHandler(function(result) {
+
+      APP.vehicle =
+        APP.vehicle || {};
+
+      APP.vehicle.stock =
+        Number(
+          result.newStock
+        ) || 0;
+
+      APP.vehicle.lastUpdate =
+        result.lastUpdate || '';
+
+      APP.tankMovements =
+        APP.tankMovements || [];
+
+      if (
+        result.movement
+      ) {
+        APP.tankMovements.unshift(
+          result.movement
+        );
+      }
+
+      v71RebuildDashboard_();
+      renderTank();
+      renderTankHistory();
+      renderDashboard();
+
+      document.getElementById(
+        'tankCorrectionStock'
+      ).value = '';
+
+      document.getElementById(
+        'tankCorrectionNote'
+      ).value = '';
+
+      closeTankCorrectionModal();
+
+      setLoading(false);
+
+      showToast(
+        'Tankbestand wurde korrigiert.'
+      );
     })
     .withFailureHandler(handleError)
-    .correctTankStock(newStock, note);
+    .correctTankStock(
+      newStock,
+      note
+    );
 }
 
 function renderTankHistory() {
@@ -4384,18 +3542,25 @@ function saveNewPurchasePrice() {
   const date = value('purchasePriceDate');
   const price = Number(value('purchasePriceValue'));
   const note = value('purchasePriceNote');
-
-  if (!price || price <= 0) {
-    showToast('Bitte einen gültigen Einkaufspreis eingeben.', true);
-    return;
-  }
+  if (!price || price <= 0) { showToast('Bitte einen gültigen Einkaufspreis eingeben.', true); return; }
 
   setLoading(true);
-
   google.script.run
-    .withSuccessHandler(function() {
+    .withSuccessHandler(function(result) {
+      if (result && result.price) {
+        APP.prices = APP.prices || [];
+        APP.prices.unshift(result.price);
+        APP.priceTable = v71BuildPriceTable_(result.price);
+        APP.dashboard = APP.dashboard || {};
+        APP.dashboard.purchasePrice = {date: result.price.date, price: result.price.price};
+        renderPrices();
+        renderPriceCalculation();
+        updateOrderPricePreview();
+        renderDashboard();
+      }
       document.getElementById('purchasePriceValue').value = '';
       document.getElementById('purchasePriceNote').value = '';
+      setLoading(false);
       showToast('Einkaufspreis wurde gespeichert.');
     })
     .withFailureHandler(handleError)
@@ -4818,6 +3983,22 @@ function handleError(error) {
     applyTankDriverLargeStyles();
   });
 })();
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const nav = document.querySelector('.main-nav');
+  if (nav && !document.getElementById('hirmerRefreshButton')) {
+    const b = document.createElement('button');
+    b.id = 'hirmerRefreshButton';
+    b.type = 'button';
+    b.className = 'nav-button';
+    b.textContent = 'Aktualisieren';
+    b.addEventListener('click', loadApp);
+    nav.appendChild(b);
+  }
+});
 </script>
 
 </body>
