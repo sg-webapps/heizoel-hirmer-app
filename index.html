@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V75</title>
+  <title>Heizöl Hirmer – V76</title>
 
   <script>
     (function() {
@@ -2652,36 +2652,98 @@ function v75MergeAppData_(data){
 
 async function v75LoadTankData_(showLoader){
   if(showLoader) setLoading(true);
+
   try{
-    const data = await window.API.read('getTankData', []);
-    v75MergeAppData_(data);
+    const data =
+      await window.API.read(
+        'getTankData',
+        []
+      );
+
+    v75MergeAppData_({
+      vehicle:
+        data && data.vehicle
+          ? data.vehicle
+          : {},
+      tankMovements:
+        data &&
+        Array.isArray(
+          data.tankMovements
+        )
+          ? data.tankMovements
+          : []
+    });
+
     if(showLoader) setLoading(false);
+
     return data;
+
   }catch(error){
+
     if(showLoader) setLoading(false);
+
     showToast(
       'Tank/LKW konnte nicht aktualisiert werden: ' +
       (error.message || String(error)),
       true
     );
+
     throw error;
   }
 }
 
 async function v75LoadPriceData_(showLoader){
   if(showLoader) setLoading(true);
+
   try{
-    const data = await window.API.read('getPriceData', []);
-    v75MergeAppData_(data);
+    const data =
+      await window.API.read(
+        'getPriceData',
+        []
+      );
+
+    const prices =
+      data &&
+      Array.isArray(data.prices)
+        ? data.prices
+        : [];
+
+    const latest =
+      prices.length
+        ? prices[0]
+        : null;
+
+    const merged = {
+      prices: prices,
+      priceTable:
+        latest
+          ? v71BuildPriceTable_(latest)
+          : {
+              purchasePrice: null,
+              purchaseDate: '',
+              vat: 19,
+              tiers: []
+            }
+    };
+
+    v75MergeAppData_(
+      merged
+    );
+
     if(showLoader) setLoading(false);
-    return data;
+
+    return merged;
+
   }catch(error){
+
     if(showLoader) setLoading(false);
+
     showToast(
       'Preiskalkulation konnte nicht aktualisiert werden: ' +
       (error.message || String(error)),
       true
     );
+
     throw error;
   }
 }
@@ -4377,16 +4439,54 @@ function v74ManualRefresh_(){
     window.API.read('getPriceData', [])
   ])
     .then(function(results){
-      v75MergeAppData_(results[0]);
-      v75MergeAppData_(results[1]);
-      v75MergeAppData_(results[2]);
+
+      v75MergeAppData_(
+        results[0]
+      );
+
+      v75MergeAppData_(
+        results[1]
+      );
+
+      const prices =
+        results[2] &&
+        Array.isArray(
+          results[2].prices
+        )
+          ? results[2].prices
+          : [];
+
+      const latest =
+        prices.length
+          ? prices[0]
+          : null;
+
+      v75MergeAppData_({
+        prices: prices,
+        priceTable:
+          latest
+            ? v71BuildPriceTable_(latest)
+            : {
+                purchasePrice: null,
+                purchaseDate: '',
+                vat: 19,
+                tiers: []
+              }
+      });
+
       setLoading(false);
-      showToast('Daten wurden aktualisiert.');
+
+      showToast(
+        'Daten wurden aktualisiert.'
+      );
     })
     .catch(function(error){
+
       setLoading(false);
+
       showToast(
-        error.message || String(error),
+        error.message ||
+        String(error),
         true
       );
     });
