@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V84</title>
+  <title>Heizöl Hirmer – V85</title>
 
   <script>
     (function() {
@@ -1753,6 +1753,22 @@
       margin-left: 0 !important;
     }
 
+
+    /* V85 – Navigationsleiste bleibt beim Scrollen oben sichtbar */
+    .main-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #fff;
+      padding-top: 8px;
+      padding-bottom: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
 </style>
 </head>
 
@@ -2262,8 +2278,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=84"></script>
-<script src="api.js?v=84"></script>
+<script src="config.js?v=85"></script>
+<script src="api.js?v=85"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
