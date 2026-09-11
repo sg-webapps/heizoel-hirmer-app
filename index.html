@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V80</title>
+  <title>Heizöl Hirmer – V81</title>
 
   <script>
     (function() {
@@ -1779,6 +1779,8 @@
   <button class="nav-button" data-page="tank">Tank / LKW</button>
   <button class="nav-button" data-page="prices">Preiskalkulation</button>
   <button class="nav-button" data-page="export">Export</button>
+  <button id="hirmerRefreshButton" class="nav-button" type="button" onclick="v74ManualRefresh_()">Aktualisieren</button>
+  <button id="hirmerRefreshAllButton" class="nav-button" type="button" onclick="v79RefreshAll_()">Alles aktualisieren</button>
 </nav>
 
 <main class="content">
@@ -4622,30 +4624,7 @@ function handleError(error) {
 </script>
 
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const nav = document.querySelector('.main-nav');
-  if (nav && !document.getElementById('hirmerRefreshButton')) {
-    const b = document.createElement('button');
-    b.id = 'hirmerRefreshButton';
-    b.type = 'button';
-    b.className = 'nav-button';
-    b.textContent = 'Aktualisieren';
-    b.addEventListener('click', v74ManualRefresh_);
-    nav.appendChild(b);
 
-    if (!document.getElementById('hirmerRefreshAllButton')) {
-      const allButton = document.createElement('button');
-      allButton.id = 'hirmerRefreshAllButton';
-      allButton.type = 'button';
-      allButton.className = 'nav-button';
-      allButton.textContent = 'Alles aktualisieren';
-      allButton.addEventListener('click', v79RefreshAll_);
-      nav.appendChild(allButton);
-    }
-  }
-});
-</script>
 
 <script>
 
