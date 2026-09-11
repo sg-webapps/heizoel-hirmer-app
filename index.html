@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V98</title>
+  <title>Heizöl Hirmer – V99</title>
 
   <script>
     (function() {
@@ -1904,6 +1904,58 @@
       font-size: 16px !important;
     }
 
+
+    /* V99 – nur mobil: Tank/LKW vollständig auf kompakte Standardgrößen setzen */
+    .mobile-device #page-tank,
+    .mobile-device #page-tank * {
+      font-size: 16px !important;
+      line-height: 1.4 !important;
+    }
+
+    .mobile-device #page-tank h1 {
+      font-size: 28px !important;
+      line-height: 1.2 !important;
+      margin-bottom: 18px !important;
+    }
+
+    .mobile-device #page-tank h2 {
+      font-size: 23px !important;
+      line-height: 1.25 !important;
+      margin-bottom: 16px !important;
+    }
+
+    .mobile-device #page-tank .vehicle-name {
+      font-size: 20px !important;
+      font-weight: 800 !important;
+    }
+
+    .mobile-device #page-tank .tank-info-value {
+      font-size: 28px !important;
+      line-height: 1.15 !important;
+      font-weight: 800 !important;
+    }
+
+    .mobile-device #page-tank input,
+    .mobile-device #page-tank select,
+    .mobile-device #page-tank textarea {
+      min-height: 56px !important;
+      padding: 14px !important;
+      font-size: 18px !important;
+    }
+
+    .mobile-device #page-tank button,
+    .mobile-device #page-tank .btn {
+      min-height: 52px !important;
+      padding: 12px 14px !important;
+      font-size: 16px !important;
+    }
+
+    .mobile-device #page-tank td,
+    .mobile-device #page-tank th,
+    .mobile-device #page-tank td::before {
+      font-size: 16px !important;
+    }
+
 </style>
 </head>
 
@@ -2471,8 +2523,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=98"></script>
-<script src="api.js?v=98"></script>
+<script src="config.js?v=99"></script>
+<script src="api.js?v=99"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
