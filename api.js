@@ -343,6 +343,25 @@ window.API = (function(){
   }
 
 
+
+  async function probeLogin(
+    passwordHash
+  ){
+    return await call(
+      'login',
+      [],
+      {
+        retries: 0,
+        timeoutMs: 12000,
+        extraParams: {
+          passwordHash: passwordHash,
+          remember: 'false'
+        }
+      }
+    );
+  }
+
+
   async function login(
     passwordHash,
     remember
@@ -386,6 +405,8 @@ window.API = (function(){
     call: call,
 
     login: login,
+
+    probeLogin: probeLogin,
 
     hasToken: hasToken,
 

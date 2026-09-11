@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V90</title>
+  <title>Heizöl Hirmer – V91</title>
 
   <script>
     (function() {
@@ -2401,8 +2401,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=90"></script>
-<script src="api.js?v=90"></script>
+<script src="config.js?v=91"></script>
+<script src="api.js?v=91"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -5097,16 +5097,24 @@ function v79RefreshAll_(){
 async function changeAppPassword(){
 
   const currentPassword =
-    document.getElementById('settingsCurrentPassword').value;
+    document.getElementById(
+      'settingsCurrentPassword'
+    ).value;
 
   const newPassword =
-    document.getElementById('settingsNewPassword').value;
+    document.getElementById(
+      'settingsNewPassword'
+    ).value;
 
   const repeatPassword =
-    document.getElementById('settingsNewPasswordRepeat').value;
+    document.getElementById(
+      'settingsNewPasswordRepeat'
+    ).value;
 
   const status =
-    document.getElementById('settingsPasswordStatus');
+    document.getElementById(
+      'settingsPasswordStatus'
+    );
 
   function showStatus(message, isError){
     status.classList.remove('hidden');
@@ -5115,33 +5123,58 @@ async function changeAppPassword(){
     status.style.padding = '14px';
     status.style.borderRadius = '8px';
     status.style.background =
-      isError ? '#fde7e7' : '#e7f6e7';
+      isError
+        ? '#fde7e7'
+        : '#e7f6e7';
     status.style.color =
-      isError ? '#9b0000' : '#126412';
+      isError
+        ? '#9b0000'
+        : '#126412';
+  }
+
+  function sleep(ms){
+    return new Promise(function(resolve){
+      setTimeout(resolve, ms);
+    });
   }
 
   if(!currentPassword){
-    showStatus('Bitte das aktuelle Passwort eingeben.', true);
+    showStatus(
+      'Bitte das aktuelle Passwort eingeben.',
+      true
+    );
     return;
   }
 
   if(!newPassword){
-    showStatus('Bitte ein neues Passwort eingeben.', true);
+    showStatus(
+      'Bitte ein neues Passwort eingeben.',
+      true
+    );
     return;
   }
 
   if(newPassword.length < 8){
-    showStatus('Das neue Passwort muss mindestens 8 Zeichen lang sein.', true);
+    showStatus(
+      'Das neue Passwort muss mindestens 8 Zeichen lang sein.',
+      true
+    );
     return;
   }
 
   if(newPassword !== repeatPassword){
-    showStatus('Die beiden neuen Passwörter stimmen nicht überein.', true);
+    showStatus(
+      'Die beiden neuen Passwörter stimmen nicht überein.',
+      true
+    );
     return;
   }
 
   if(newPassword === currentPassword){
-    showStatus('Das neue Passwort muss sich vom bisherigen Passwort unterscheiden.', true);
+    showStatus(
+      'Das neue Passwort muss sich vom bisherigen Passwort unterscheiden.',
+      true
+    );
     return;
   }
 
@@ -5149,35 +5182,103 @@ async function changeAppPassword(){
 
   try{
     const currentHash =
-      await hirmerSha256Hex_(currentPassword);
+      await hirmerSha256Hex_(
+        currentPassword
+      );
 
     const newHash =
-      await hirmerSha256Hex_(newPassword);
+      await hirmerSha256Hex_(
+        newPassword
+      );
 
-    await window.API.write(
-      'changePassword',
-      [currentHash, newHash]
+    showStatus(
+      'Passwortänderung wird gespeichert …',
+      false
     );
+
+    // Genau EIN Schreibrequest. Der langsame Apps-Script-Callback
+    // wird bewusst nicht abgewartet.
+    await window.API.fireWrite(
+      'changePassword',
+      [
+        currentHash,
+        newHash
+      ]
+    );
+
+    let verified = false;
+    let lastError = null;
+
+    // Automatisch prüfen, ob das neue Passwort bereits aktiv ist.
+    // Diese Prüfung läuft über den Login-Endpunkt und speichert
+    // dabei keinen neuen Token im Browser.
+    for(
+      let attempt = 0;
+      attempt < 6;
+      attempt++
+    ){
+      await sleep(
+        attempt === 0
+          ? 1200
+          : 1500
+      );
+
+      try{
+        await window.API.probeLogin(
+          newHash
+        );
+
+        verified = true;
+        break;
+
+      }catch(error){
+        lastError = error;
+      }
+    }
+
+    if(!verified){
+      setLoading(false);
+
+      showStatus(
+        'Die Passwortänderung wurde an den Server gesendet, konnte aber noch nicht bestätigt werden. Bitte etwa 10 Sekunden warten und danach mit dem neuen Passwort anmelden. Das Passwort nicht erneut ändern.',
+        true
+      );
+
+      return;
+    }
 
     setLoading(false);
 
     showStatus(
-      '✓ Passwort wurde geändert. Alle Geräte werden jetzt abgemeldet. Bitte mit dem neuen Passwort erneut anmelden.',
+      '✓ Passwort wurde erfolgreich geändert und geprüft. Alle bisher angemeldeten Geräte werden abgemeldet.',
       false
     );
 
-    document.getElementById('settingsCurrentPassword').value = '';
-    document.getElementById('settingsNewPassword').value = '';
-    document.getElementById('settingsNewPasswordRepeat').value = '';
+    document.getElementById(
+      'settingsCurrentPassword'
+    ).value = '';
 
+    document.getElementById(
+      'settingsNewPassword'
+    ).value = '';
+
+    document.getElementById(
+      'settingsNewPasswordRepeat'
+    ).value = '';
+
+    // Den bisherigen Token lokal entfernen. Durch die neue
+    // Session-Version sind auch die Tokens anderer Geräte ungültig.
     setTimeout(function(){
       hirmerLogout();
     }, 1800);
 
   }catch(error){
+
     setLoading(false);
+
     showStatus(
-      error.message || String(error),
+      error.message ||
+      String(error),
       true
     );
   }
