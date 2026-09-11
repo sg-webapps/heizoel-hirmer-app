@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V91</title>
+  <title>Heizöl Hirmer – V92</title>
 
   <script>
     (function() {
@@ -1834,6 +1834,63 @@
       background: #f1f1f1;
     }
 
+
+    /* V92 – ausschließlich mobile Ansicht:
+       kompakte Navigation, damit die eigentlichen App-Daten
+       sofort deutlich weiter oben sichtbar sind. */
+    .mobile-device .main-nav {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 6px !important;
+      padding: 7px 8px !important;
+      align-items: stretch !important;
+    }
+
+    .mobile-device .main-nav .nav-button,
+    .mobile-device .main-nav button {
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 44px !important;
+      height: auto !important;
+      margin: 0 !important;
+      padding: 7px 4px !important;
+      border-radius: 8px !important;
+      font-size: 12px !important;
+      line-height: 1.15 !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+      text-align: center !important;
+    }
+
+    .mobile-device .main-nav .hirmer-settings-nav {
+      margin-left: 0 !important;
+    }
+
+    .mobile-device .main-nav.v88-fixed {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+
+    .mobile-device #v88NavSpacer.active {
+      height: var(--v92-mobile-nav-height, auto) !important;
+    }
+
+    @media (max-width: 520px) {
+      .mobile-device .main-nav {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      }
+
+      .mobile-device .main-nav.v88-fixed {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      }
+
+      .mobile-device .main-nav .nav-button,
+      .mobile-device .main-nav button {
+        font-size: 11px !important;
+        padding: 6px 3px !important;
+      }
+    }
+
 </style>
 </head>
 
@@ -2401,8 +2458,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=91"></script>
-<script src="api.js?v=91"></script>
+<script src="config.js?v=92"></script>
+<script src="api.js?v=92"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -5377,6 +5434,50 @@ function toggleNewPasswordVisibility(inputId, button){
         : 'Passwort anzeigen';
   }
 }
+</script>
+
+
+<script>
+(function(){
+  function syncV92MobileNavHeight(){
+    if(
+      !document.documentElement.classList.contains('mobile-device')
+    ){
+      return;
+    }
+
+    const nav =
+      document.querySelector('.main-nav');
+
+    if(!nav){
+      return;
+    }
+
+    document.documentElement.style.setProperty(
+      '--v92-mobile-nav-height',
+      nav.offsetHeight + 'px'
+    );
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener(
+      'DOMContentLoaded',
+      syncV92MobileNavHeight
+    );
+  }else{
+    syncV92MobileNavHeight();
+  }
+
+  window.addEventListener(
+    'resize',
+    syncV92MobileNavHeight
+  );
+
+  setTimeout(
+    syncV92MobileNavHeight,
+    300
+  );
+})();
 </script>
 
 </body>
