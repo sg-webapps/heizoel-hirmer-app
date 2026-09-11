@@ -403,6 +403,17 @@ window.API = (function(){
       );
     },
 
+    readOnce: function(action, args, timeoutMs){
+      return call(
+        action,
+        args,
+        {
+          retries: 0,
+          timeoutMs: timeoutMs || 25000
+        }
+      );
+    },
+
     write: function(action, args){
       return call(
         action,
