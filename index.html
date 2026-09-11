@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V76</title>
+  <title>Heizöl Hirmer – V77</title>
 
   <script>
     (function() {
@@ -2605,6 +2605,42 @@ function v74LoadSnapshot_(){
 }
 
 
+
+let V77_TANK_LOADED = false;
+let V77_PRICES_LOADED = false;
+
+
+function v77HasTankCache_(){
+  return (
+    V77_TANK_LOADED ||
+    (
+      APP &&
+      APP.vehicle &&
+      Array.isArray(
+        APP.tankMovements
+      )
+    )
+  );
+}
+
+
+function v77HasPriceCache_(){
+  return (
+    V77_PRICES_LOADED ||
+    (
+      APP &&
+      Array.isArray(
+        APP.prices
+      ) &&
+      APP.priceTable &&
+      Array.isArray(
+        APP.priceTable.tiers
+      )
+    )
+  );
+}
+
+
 function v75MergeAppData_(data){
   if(!data) return;
 
@@ -2650,7 +2686,23 @@ function v75MergeAppData_(data){
   v74SaveSnapshot_();
 }
 
-async function v75LoadTankData_(showLoader){
+async async function v75LoadTankData_(showLoader, force){
+  force = !!force;
+
+  if(
+    !force &&
+    v77HasTankCache_()
+  ){
+    renderTank();
+    renderTankHistory();
+    return {
+      vehicle:
+        APP.vehicle || {},
+      tankMovements:
+        APP.tankMovements || []
+    };
+  }
+
   if(showLoader) setLoading(true);
 
   try{
@@ -2674,6 +2726,8 @@ async function v75LoadTankData_(showLoader){
           : []
     });
 
+    V77_TANK_LOADED = true;
+
     if(showLoader) setLoading(false);
 
     return data;
@@ -2692,7 +2746,35 @@ async function v75LoadTankData_(showLoader){
   }
 }
 
-async function v75LoadPriceData_(showLoader){
+async async function v75LoadPriceData_(showLoader, force){
+  force = !!force;
+
+  if(
+    !force &&
+    v77HasPriceCache_()
+  ){
+    renderPrices();
+    renderPriceCalculation();
+
+    if(
+      typeof updateOrderPricePreview === 'function'
+    ){
+      updateOrderPricePreview();
+    }
+
+    return {
+      prices:
+        APP.prices || [],
+      priceTable:
+        APP.priceTable || {
+          purchasePrice: null,
+          purchaseDate: '',
+          vat: 19,
+          tiers: []
+        }
+    };
+  }
+
   if(showLoader) setLoading(true);
 
   try{
@@ -2702,37 +2784,31 @@ async function v75LoadPriceData_(showLoader){
         []
       );
 
-    const prices =
-      data &&
-      Array.isArray(data.prices)
-        ? data.prices
-        : [];
-
-    const latest =
-      prices.length
-        ? prices[0]
-        : null;
-
-    const merged = {
-      prices: prices,
+    v75MergeAppData_({
+      prices:
+        data &&
+        Array.isArray(
+          data.prices
+        )
+          ? data.prices
+          : [],
       priceTable:
-        latest
-          ? v71BuildPriceTable_(latest)
+        data &&
+        data.priceTable
+          ? data.priceTable
           : {
               purchasePrice: null,
               purchaseDate: '',
               vat: 19,
               tiers: []
             }
-    };
+    });
 
-    v75MergeAppData_(
-      merged
-    );
+    V77_PRICES_LOADED = true;
 
     if(showLoader) setLoading(false);
 
-    return merged;
+    return data;
 
   }catch(error){
 
@@ -2978,23 +3054,24 @@ function v71RebuildDashboard_() {
 }
 
 function v71BuildPriceTable_(priceRecord) {
-  const purchase = Number(priceRecord.price) || 0;
-  const defs = [
-    ['500 L',0,500,22.40,20.80],['500–800 L',500,800,9.10,7.50],['800–1.500 L',800,1500,4.10,6.50],
-    ['1.500–2.500 L',1500,2500,3.50,5.50],['2.500–3.500 L',2500,3500,2.90,4.90],['3.500–4.500 L',3500,4500,2.60,4.60],
-    ['4.500–5.500 L',4500,5500,2.30,4.30],['5.500–6.500 L',5500,6500,2.00,4.00],['6.500–7.500 L',6500,7500,1.90,3.90],
-    ['7.500–8.500 L',7500,8500,1.80,3.80],['8.500–9.500 L',8500,9500,1.70,3.70],['9.500–12.500 L',9500,12500,1.60,3.60],
-    ['ab 12.500 L',12500,null,1.50,3.50]
-  ];
-  function r(v){ return Math.round((Number(v)+Number.EPSILON)*100)/100; }
+
+  // V77:
+  // Die Staffelwerte kommen aus Google Sheets.
+  // Diese Funktion bleibt nur als sichere Fallback-Struktur bestehen.
   return {
-    purchasePrice: purchase,
-    purchaseDate: priceRecord.date || '',
-    vat: 19,
-    tiers: defs.map(function(x){
-      const nn=r(purchase+x[3]), pn=r(purchase+x[4]);
-      return {label:x[0],min:x[1],max:x[2],normalNet:nn,normalGross:r(nn*1.19),premiumNet:pn,premiumGross:r(pn*1.19)};
-    })
+    purchasePrice:
+      priceRecord
+        ? Number(
+            priceRecord.price
+          ) || 0
+        : 0,
+    purchaseDate:
+      priceRecord
+        ? priceRecord.date || ''
+        : '',
+    vat:
+      19,
+    tiers: []
   };
 }
 
@@ -3005,6 +3082,27 @@ function loadApp() {
 
   if(snapshot){
     v74ApplySnapshot_(snapshot);
+
+    V77_TANK_LOADED =
+      !!(
+        snapshot.vehicle &&
+        Array.isArray(
+          snapshot.tankMovements
+        )
+      );
+
+    V77_PRICES_LOADED =
+      !!(
+        Array.isArray(
+          snapshot.prices
+        ) &&
+        snapshot.priceTable &&
+        Array.isArray(
+          snapshot.priceTable.tiers
+        ) &&
+        snapshot.priceTable.tiers.length
+      );
+
     setLoading(false);
 
     window.API
@@ -3967,32 +4065,72 @@ function renderPrices() {
 }
 
 function saveNewPurchasePrice() {
-  const date = value('purchasePriceDate');
-  const price = Number(value('purchasePriceValue'));
-  const note = value('purchasePriceNote');
-  if (!price || price <= 0) { showToast('Bitte einen gültigen Einkaufspreis eingeben.', true); return; }
+  const date =
+    value('purchasePriceDate');
+
+  const price =
+    Number(
+      value('purchasePriceValue')
+    );
+
+  const note =
+    value('purchasePriceNote');
+
+  if(
+    !price ||
+    price <= 0
+  ){
+    showToast(
+      'Bitte einen gültigen Einkaufspreis eingeben.',
+      true
+    );
+    return;
+  }
 
   setLoading(true);
+
   google.script.run
-    .withSuccessHandler(function(result) {
-      if (result && result.price) {
-        APP.prices = APP.prices || [];
-        APP.prices.unshift(result.price);
-        APP.priceTable = v71BuildPriceTable_(result.price);
-        APP.dashboard = APP.dashboard || {};
-        APP.dashboard.purchasePrice = {date: result.price.date, price: result.price.price};
-        renderPrices();
-        renderPriceCalculation();
-        updateOrderPricePreview();
-        renderDashboard();
-      }
-      document.getElementById('purchasePriceValue').value = '';
-      document.getElementById('purchasePriceNote').value = '';
-      setLoading(false);
-      showToast('Einkaufspreis wurde gespeichert.');
+    .withSuccessHandler(function(){
+
+      V77_PRICES_LOADED = false;
+
+      v75LoadPriceData_(
+        false,
+        true
+      )
+        .then(function(){
+
+          document.getElementById(
+            'purchasePriceValue'
+          ).value = '';
+
+          document.getElementById(
+            'purchasePriceNote'
+          ).value = '';
+
+          setLoading(false);
+
+          showToast(
+            'Einkaufspreis wurde gespeichert.'
+          );
+        })
+        .catch(function(error){
+
+          setLoading(false);
+
+          showToast(
+            error.message ||
+            String(error),
+            true
+          );
+        });
     })
     .withFailureHandler(handleError)
-    .savePurchasePrice(date, price, note);
+    .savePurchasePrice(
+      date,
+      price,
+      note
+    );
 }
 
 function renderPriceCalculation() {
@@ -4433,10 +4571,22 @@ document.addEventListener('DOMContentLoaded', function() {
 function v74ManualRefresh_(){
   setLoading(true);
 
+  V77_TANK_LOADED = false;
+  V77_PRICES_LOADED = false;
+
   Promise.all([
-    window.API.read('getCoreData', []),
-    window.API.read('getTankData', []),
-    window.API.read('getPriceData', [])
+    window.API.read(
+      'getCoreData',
+      []
+    ),
+    window.API.read(
+      'getTankData',
+      []
+    ),
+    window.API.read(
+      'getPriceData',
+      []
+    )
   ])
     .then(function(results){
 
@@ -4444,28 +4594,33 @@ function v74ManualRefresh_(){
         results[0]
       );
 
-      v75MergeAppData_(
-        results[1]
-      );
-
-      const prices =
-        results[2] &&
-        Array.isArray(
-          results[2].prices
-        )
-          ? results[2].prices
-          : [];
-
-      const latest =
-        prices.length
-          ? prices[0]
-          : null;
+      v75MergeAppData_({
+        vehicle:
+          results[1] &&
+          results[1].vehicle
+            ? results[1].vehicle
+            : {},
+        tankMovements:
+          results[1] &&
+          Array.isArray(
+            results[1].tankMovements
+          )
+            ? results[1].tankMovements
+            : []
+      });
 
       v75MergeAppData_({
-        prices: prices,
+        prices:
+          results[2] &&
+          Array.isArray(
+            results[2].prices
+          )
+            ? results[2].prices
+            : [],
         priceTable:
-          latest
-            ? v71BuildPriceTable_(latest)
+          results[2] &&
+          results[2].priceTable
+            ? results[2].priceTable
             : {
                 purchasePrice: null,
                 purchaseDate: '',
@@ -4473,6 +4628,9 @@ function v74ManualRefresh_(){
                 tiers: []
               }
       });
+
+      V77_TANK_LOADED = true;
+      V77_PRICES_LOADED = true;
 
       setLoading(false);
 
