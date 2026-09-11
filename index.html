@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V86</title>
+  <title>Heizöl Hirmer – V87</title>
 
   <script>
     (function() {
@@ -1898,6 +1898,7 @@
   <button class="nav-button" data-page="customers">Kunden</button>
   <button class="nav-button" data-page="tank">Tank / LKW</button>
   <button class="nav-button" data-page="prices">Preiskalkulation</button>
+  <button class="nav-button" data-page="settings">Einstellungen</button>
   <button class="nav-button" data-page="export">Export</button>
   <button id="hirmerRefreshButton" class="nav-button" type="button" onclick="v74ManualRefresh_()">Aktualisieren</button>
   <button id="hirmerRefreshAllButton" class="nav-button" type="button" onclick="v79RefreshAll_()">Alles aktualisieren</button>
@@ -2151,6 +2152,42 @@
   </div>
 </section>
 
+
+<section id="page-settings" class="page">
+  <h1>Einstellungen</h1>
+
+  <div class="panel">
+    <h2>Zugangsdaten</h2>
+    <p class="muted">
+      Hier kann das App-Passwort geändert werden.
+      Danach werden alle bisher angemeldeten Geräte abgemeldet.
+    </p>
+
+    <div class="form-grid">
+      <div class="form-group full-width">
+        <label for="settingsCurrentPassword">Aktuelles Passwort</label>
+        <input id="settingsCurrentPassword" type="password" autocomplete="current-password">
+      </div>
+
+      <div class="form-group full-width">
+        <label for="settingsNewPassword">Neues Passwort</label>
+        <input id="settingsNewPassword" type="password" autocomplete="new-password">
+      </div>
+
+      <div class="form-group full-width">
+        <label for="settingsNewPasswordRepeat">Neues Passwort wiederholen</label>
+        <input id="settingsNewPasswordRepeat" type="password" autocomplete="new-password">
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-primary" onclick="changeAppPassword()">
+      Passwort ändern
+    </button>
+
+    <div id="settingsPasswordStatus" class="hidden"></div>
+  </div>
+</section>
+
 <section id="page-export" class="page">
   <h1>Export für Buchhaltung</h1>
 
@@ -2305,8 +2342,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=86"></script>
-<script src="api.js?v=86"></script>
+<script src="config.js?v=87"></script>
+<script src="api.js?v=87"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -5042,6 +5079,98 @@ function v79RefreshAll_(){
     update();
   });
 })();
+</script>
+
+
+<script>
+async function changeAppPassword(){
+
+  const currentPassword =
+    document.getElementById('settingsCurrentPassword').value;
+
+  const newPassword =
+    document.getElementById('settingsNewPassword').value;
+
+  const repeatPassword =
+    document.getElementById('settingsNewPasswordRepeat').value;
+
+  const status =
+    document.getElementById('settingsPasswordStatus');
+
+  function showStatus(message, isError){
+    status.classList.remove('hidden');
+    status.textContent = message;
+    status.style.marginTop = '16px';
+    status.style.padding = '14px';
+    status.style.borderRadius = '8px';
+    status.style.background =
+      isError ? '#fde7e7' : '#e7f6e7';
+    status.style.color =
+      isError ? '#9b0000' : '#126412';
+  }
+
+  if(!currentPassword){
+    showStatus('Bitte das aktuelle Passwort eingeben.', true);
+    return;
+  }
+
+  if(!newPassword){
+    showStatus('Bitte ein neues Passwort eingeben.', true);
+    return;
+  }
+
+  if(newPassword.length < 8){
+    showStatus('Das neue Passwort muss mindestens 8 Zeichen lang sein.', true);
+    return;
+  }
+
+  if(newPassword !== repeatPassword){
+    showStatus('Die beiden neuen Passwörter stimmen nicht überein.', true);
+    return;
+  }
+
+  if(newPassword === currentPassword){
+    showStatus('Das neue Passwort muss sich vom bisherigen Passwort unterscheiden.', true);
+    return;
+  }
+
+  setLoading(true);
+
+  try{
+    const currentHash =
+      await hirmerSha256Hex_(currentPassword);
+
+    const newHash =
+      await hirmerSha256Hex_(newPassword);
+
+    await window.API.write(
+      'changePassword',
+      [currentHash, newHash]
+    );
+
+    setLoading(false);
+
+    showStatus(
+      '✓ Passwort wurde geändert. Alle Geräte werden jetzt abgemeldet. Bitte mit dem neuen Passwort erneut anmelden.',
+      false
+    );
+
+    document.getElementById('settingsCurrentPassword').value = '';
+    document.getElementById('settingsNewPassword').value = '';
+    document.getElementById('settingsNewPasswordRepeat').value = '';
+
+    setTimeout(function(){
+      hirmerLogout();
+    }, 1800);
+
+  }catch(error){
+    setLoading(false);
+    showStatus(
+      error.message || String(error),
+      true
+    );
+  }
+}
 </script>
 
 </body>
