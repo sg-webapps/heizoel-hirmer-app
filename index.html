@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V85</title>
+  <title>Heizöl Hirmer – V86</title>
 
   <script>
     (function() {
@@ -1754,19 +1754,45 @@
     }
 
 
-    /* V85 – Navigationsleiste bleibt beim Scrollen oben sichtbar */
-    .main-nav {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: #fff;
-      padding-top: 8px;
-      padding-bottom: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+
+    /* V86 – Navigationsleiste wird beim Scrollen wirklich fixiert */
+    .topbar {
+      position: relative !important;
+      top: auto !important;
     }
 
-    body {
-      overflow-x: hidden;
+    .main-nav {
+      position: relative !important;
+      top: auto !important;
+      z-index: 1000;
+      width: 100%;
+      background: #fff;
+    }
+
+    .main-nav.v86-fixed {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0;
+      right: 0;
+      width: 100%;
+      box-shadow: 0 3px 10px rgba(0,0,0,.12);
+    }
+
+    #v86NavSpacer {
+      display: none;
+      width: 100%;
+    }
+
+    #v86NavSpacer.active {
+      display: block;
+    }
+
+    .mobile-device .main-nav.v86-fixed {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0;
+      right: 0;
+      width: 100%;
     }
 
 </style>
@@ -1876,6 +1902,7 @@
   <button id="hirmerRefreshButton" class="nav-button" type="button" onclick="v74ManualRefresh_()">Aktualisieren</button>
   <button id="hirmerRefreshAllButton" class="nav-button" type="button" onclick="v79RefreshAll_()">Alles aktualisieren</button>
 </nav>
+<div id="v86NavSpacer"></div>
 
 <main class="content">
 
@@ -2278,8 +2305,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=85"></script>
-<script src="api.js?v=85"></script>
+<script src="config.js?v=86"></script>
+<script src="api.js?v=86"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -4955,5 +4982,67 @@ function v79RefreshAll_(){
     });
 }
 </script>
+
+<script>
+(function(){
+  let nav = null;
+  let spacer = null;
+  let navTop = 0;
+
+  function measure(){
+    if(!nav){
+      nav = document.querySelector('.main-nav');
+      spacer = document.getElementById('v86NavSpacer');
+    }
+
+    if(!nav || !spacer) return;
+
+    if(!nav.classList.contains('v86-fixed')){
+      navTop = nav.getBoundingClientRect().top + window.scrollY;
+    }
+
+    spacer.style.height = nav.offsetHeight + 'px';
+  }
+
+  function update(){
+    if(!nav || !spacer){
+      measure();
+    }
+
+    if(!nav || !spacer) return;
+
+    if(window.scrollY >= navTop){
+      if(!nav.classList.contains('v86-fixed')){
+        spacer.style.height = nav.offsetHeight + 'px';
+        spacer.classList.add('active');
+        nav.classList.add('v86-fixed');
+      }
+    }else{
+      nav.classList.remove('v86-fixed');
+      spacer.classList.remove('active');
+    }
+  }
+
+  window.addEventListener('load', function(){
+    measure();
+    update();
+  });
+
+  window.addEventListener('scroll', update, {passive:true});
+
+  window.addEventListener('resize', function(){
+    const wasFixed = nav && nav.classList.contains('v86-fixed');
+
+    if(wasFixed){
+      nav.classList.remove('v86-fixed');
+      spacer.classList.remove('active');
+    }
+
+    measure();
+    update();
+  });
+})();
+</script>
+
 </body>
 </html>
