@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V103</title>
+  <title>Heizöl Hirmer – V104</title>
 
   <script>
     (function() {
@@ -2163,6 +2163,79 @@
       padding: 18px !important;
     }
 
+
+    /* V104 – Mobile Tank/LKW:
+       der alte JavaScript-Zwang für riesige Schriftgrößen wurde entfernt.
+       Tank/LKW nutzt jetzt die gleiche mobile Größenordnung wie die übrigen Reiter. */
+    .mobile-device #page-tank h1 {
+      font-size: 28px !important;
+      line-height: 1.2 !important;
+      margin-bottom: 18px !important;
+    }
+
+    .mobile-device #page-tank h2 {
+      font-size: 23px !important;
+      line-height: 1.25 !important;
+      margin-bottom: 16px !important;
+    }
+
+    .mobile-device #page-tank h3 {
+      font-size: 20px !important;
+      line-height: 1.3 !important;
+    }
+
+    .mobile-device #page-tank p,
+    .mobile-device #page-tank label,
+    .mobile-device #page-tank .muted,
+    .mobile-device #page-tank .hint,
+    .mobile-device #page-tank small,
+    .mobile-device #page-tank .vehicle-plate,
+    .mobile-device #page-tank .tank-info-label,
+    .mobile-device #page-tank .tank-percent,
+    .mobile-device #page-tank #tankLastUpdate,
+    .mobile-device #page-tank .correction-info {
+      font-size: 16px !important;
+      line-height: 1.4 !important;
+    }
+
+    .mobile-device #page-tank .vehicle-name {
+      font-size: 20px !important;
+      line-height: 1.3 !important;
+    }
+
+    .mobile-device #page-tank .tank-info-value {
+      font-size: 24px !important;
+      line-height: 1.15 !important;
+    }
+
+    .mobile-device #page-tank input,
+    .mobile-device #page-tank select,
+    .mobile-device #page-tank textarea {
+      min-height: 56px !important;
+      padding: 14px !important;
+      font-size: 18px !important;
+      line-height: 1.3 !important;
+    }
+
+    .mobile-device #page-tank button,
+    .mobile-device #page-tank .btn {
+      min-height: 56px !important;
+      padding: 13px 15px !important;
+      font-size: 18px !important;
+      line-height: 1.25 !important;
+    }
+
+    .mobile-device #page-tank table,
+    .mobile-device #page-tank th,
+    .mobile-device #page-tank td {
+      font-size: 17px !important;
+      line-height: 1.4 !important;
+    }
+
+    .mobile-device #page-tank td::before {
+      font-size: 15px !important;
+    }
+
 </style>
 
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=102">
@@ -2739,8 +2812,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=103"></script>
-<script src="api.js?v=103"></script>
+<script src="config.js?v=104"></script>
+<script src="api.js?v=104"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -5086,119 +5159,8 @@ function handleError(error) {
 </script>
 
 
-<script>
-(function () {
-  function setImp(el, prop, val) {
-    if (el) el.style.setProperty(prop, val, 'important');
-  }
 
-  function applyTankDriverLargeStyles() {
-    var root = document.getElementById('page-tank');
-    if (!root) return;
 
-    var isMobile =
-      document.documentElement.classList.contains('mobile-device') ||
-      /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') ||
-      window.innerWidth <= 900;
-
-    if (!isMobile) return;
-
-    setImp(root.querySelector('h1'), 'font-size', '54px');
-
-    root.querySelectorAll('h2').forEach(function(el) {
-      setImp(el, 'font-size', '42px');
-      setImp(el, 'line-height', '1.15');
-    });
-
-    setImp(root.querySelector('.vehicle-name'), 'font-size', '40px');
-    setImp(root.querySelector('.vehicle-plate'), 'font-size', '34px');
-
-    root.querySelectorAll('.tank-info-label').forEach(function(el) {
-      setImp(el, 'font-size', '32px');
-      setImp(el, 'font-weight', '900');
-    });
-
-    root.querySelectorAll('.tank-info-value').forEach(function(el) {
-      setImp(el, 'font-size', '46px');
-      setImp(el, 'font-weight', '900');
-    });
-
-    setImp(root.querySelector('.tank-percent'), 'font-size', '34px');
-    setImp(document.getElementById('tankLastUpdate'), 'font-size', '29px');
-
-    root.querySelectorAll('label').forEach(function(el) {
-      setImp(el, 'font-size', '34px');
-      setImp(el, 'font-weight', '900');
-    });
-
-    root.querySelectorAll('input, select, textarea').forEach(function(el) {
-      setImp(el, 'font-size', '34px');
-      setImp(el, 'min-height', '92px');
-      setImp(el, 'padding', '20px 18px');
-    });
-
-    root.querySelectorAll('button, .btn').forEach(function(el) {
-      setImp(el, 'font-size', '33px');
-      setImp(el, 'min-height', '92px');
-      setImp(el, 'font-weight', '900');
-    });
-
-    root.querySelectorAll('.correction-info').forEach(function(el) {
-      setImp(el, 'font-size', '35px');
-      setImp(el, 'line-height', '1.5');
-    });
-
-    root.querySelectorAll('td').forEach(function(el) {
-      setImp(el, 'font-size', '30px');
-      setImp(el, 'line-height', '1.4');
-    });
-
-    root.querySelectorAll('th').forEach(function(el) {
-      setImp(el, 'font-size', '31px');
-      setImp(el, 'font-weight', '900');
-    });
-
-    var correction = root.querySelector('.correction-panel');
-    if (correction) {
-      correction.querySelectorAll('label').forEach(function(el) {
-        setImp(el, 'font-size', '38px');
-        setImp(el, 'font-weight', '900');
-      });
-      correction.querySelectorAll('input').forEach(function(el) {
-        setImp(el, 'font-size', '38px');
-        setImp(el, 'min-height', '104px');
-        setImp(el, 'padding', '22px 20px');
-      });
-      correction.querySelectorAll('button, .btn').forEach(function(el) {
-        setImp(el, 'font-size', '36px');
-        setImp(el, 'min-height', '104px');
-      });
-    }
-  }
-
-  window.addEventListener('load', function() {
-    applyTankDriverLargeStyles();
-    setTimeout(applyTankDriverLargeStyles, 250);
-    setTimeout(applyTankDriverLargeStyles, 1200);
-  });
-
-  window.addEventListener('resize', applyTankDriverLargeStyles);
-  window.addEventListener('orientationchange', function() {
-    setTimeout(applyTankDriverLargeStyles, 200);
-  });
-
-  // Re-apply after app data/rendering has had time to update DOM contents.
-  var observer = new MutationObserver(function() {
-    applyTankDriverLargeStyles();
-  });
-
-  window.addEventListener('DOMContentLoaded', function() {
-    var root = document.getElementById('page-tank');
-    if (root) observer.observe(root, {childList:true, subtree:true});
-    applyTankDriverLargeStyles();
-  });
-})();
-</script>
 
 
 
@@ -5773,7 +5735,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V103';
+    el.textContent = 'Heizöl Hirmer · V104';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:12px/1.3 Arial,Helvetica,sans-serif;color:#999;' +
