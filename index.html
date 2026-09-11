@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V79</title>
+  <title>Heizöl Hirmer – V80</title>
 
   <script>
     (function() {
@@ -4633,6 +4633,16 @@ document.addEventListener('DOMContentLoaded', function() {
     b.textContent = 'Aktualisieren';
     b.addEventListener('click', v74ManualRefresh_);
     nav.appendChild(b);
+
+    if (!document.getElementById('hirmerRefreshAllButton')) {
+      const allButton = document.createElement('button');
+      allButton.id = 'hirmerRefreshAllButton';
+      allButton.type = 'button';
+      allButton.className = 'nav-button';
+      allButton.textContent = 'Alles aktualisieren';
+      allButton.addEventListener('click', v79RefreshAll_);
+      nav.appendChild(allButton);
+    }
   }
 });
 </script>
