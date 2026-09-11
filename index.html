@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V88</title>
+  <title>Heizöl Hirmer – V89</title>
 
   <script>
     (function() {
@@ -1790,6 +1790,16 @@
       display: block;
     }
 
+
+    /* V89 – Einstellungen rechts vor Abmelden */
+    .hirmer-settings-nav {
+      margin-left: auto;
+    }
+
+    .hirmer-settings-nav + .hirmer-logout-nav {
+      margin-left: 0 !important;
+    }
+
 </style>
 </head>
 
@@ -1894,10 +1904,10 @@
   <button class="nav-button" data-page="customers">Kunden</button>
   <button class="nav-button" data-page="tank">Tank / LKW</button>
   <button class="nav-button" data-page="prices">Preiskalkulation</button>
-  <button class="nav-button" data-page="settings">Einstellungen</button>
-  <button class="nav-button" data-page="export">Export</button>
+    <button class="nav-button" data-page="export">Export</button>
   <button id="hirmerRefreshButton" class="nav-button" type="button" onclick="v74ManualRefresh_()">Aktualisieren</button>
   <button id="hirmerRefreshAllButton" class="nav-button" type="button" onclick="v79RefreshAll_()">Alles aktualisieren</button>
+  <button class="nav-button hirmer-settings-nav" data-page="settings">Einstellungen</button>
 </nav>
 <div id="v88NavSpacer" aria-hidden="true"></div>
 
@@ -2339,8 +2349,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=88"></script>
-<script src="api.js?v=88"></script>
+<script src="config.js?v=89"></script>
+<script src="api.js?v=89"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -2510,6 +2520,17 @@ function hirmerEnsureLogoutButton_() {
     'click',
     hirmerLogout
   );
+
+  const settingsButton =
+    document.querySelector(
+      '.nav-button[data-page="settings"]'
+    );
+
+  if (settingsButton) {
+    nav.appendChild(
+      settingsButton
+    );
+  }
 
   nav.appendChild(button);
 }
