@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V78</title>
+  <title>Heizöl Hirmer – V79</title>
 
   <script>
     (function() {
@@ -4638,11 +4638,134 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
+
+function v79GetActivePage_(){
+  const active =
+    document.querySelector(
+      '.page.active'
+    );
+
+  if(
+    active &&
+    active.id &&
+    active.id.indexOf('page-') === 0
+  ){
+    return active.id.substring(5);
+  }
+
+  return 'dashboard';
+}
+
+
 function v74ManualRefresh_(){
+  const pageName =
+    v79GetActivePage_();
+
   setLoading(true);
 
-  V77_TANK_LOADED = false;
-  V77_PRICES_LOADED = false;
+  let request;
+
+  if(
+    pageName === 'tank'
+  ){
+    request =
+      window.API
+        .read(
+          'getTankData',
+          []
+        )
+        .then(function(data){
+
+          v75MergeAppData_({
+            vehicle:
+              data && data.vehicle
+                ? data.vehicle
+                : {},
+            tankMovements:
+              data &&
+              Array.isArray(
+                data.tankMovements
+              )
+                ? data.tankMovements
+                : []
+          });
+
+          V77_TANK_LOADED = true;
+        });
+
+  } else if(
+    pageName === 'prices'
+  ){
+    request =
+      window.API
+        .read(
+          'getPriceData',
+          []
+        )
+        .then(function(data){
+
+          v75MergeAppData_({
+            prices:
+              data &&
+              Array.isArray(
+                data.prices
+              )
+                ? data.prices
+                : [],
+            priceTable:
+              data &&
+              data.priceTable
+                ? data.priceTable
+                : {
+                    purchasePrice: null,
+                    purchaseDate: '',
+                    vat: 19,
+                    tiers: []
+                  }
+          });
+
+          V77_PRICES_LOADED = true;
+        });
+
+  } else {
+
+    // Dashboard, Aufträge, Storno und Kunden gehören zum Kernbereich.
+    request =
+      window.API
+        .read(
+          'getCoreData',
+          []
+        )
+        .then(function(data){
+          v75MergeAppData_(
+            data
+          );
+        });
+  }
+
+  request
+    .then(function(){
+      setLoading(false);
+
+      showToast(
+        'Diese Seite wurde aktualisiert.'
+      );
+    })
+    .catch(function(error){
+      setLoading(false);
+
+      showToast(
+        error.message ||
+        String(error),
+        true
+      );
+    });
+}
+</script>
+<script>
+
+function v79RefreshAll_(){
+  setLoading(true);
 
   Promise.all([
     window.API.read(
@@ -4705,11 +4828,10 @@ function v74ManualRefresh_(){
       setLoading(false);
 
       showToast(
-        'Daten wurden aktualisiert.'
+        'Alle Daten wurden aktualisiert.'
       );
     })
     .catch(function(error){
-
       setLoading(false);
 
       showToast(
