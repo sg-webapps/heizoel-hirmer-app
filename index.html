@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V97</title>
+  <title>Heizöl Hirmer – V98</title>
 
   <script>
     (function() {
@@ -425,9 +425,9 @@
       margin-bottom: 16px;
     }
 
-    .mobile-device .vehicle-name { font-size: 25px; }
+    .mobile-device .vehicle-name { font-size: 20px; }
     .mobile-device .vehicle-plate {
-      font-size: 25px;
+      font-size: 17px;
       font-weight: 800;
       line-height: 1.25;
       color: #444;
@@ -439,22 +439,22 @@
       gap: 10px;
     }
 
-    .mobile-device .tank-info-box { padding: 20px; border-radius: 12px; }
+    .mobile-device .tank-info-box { padding: 14px; border-radius: 12px; }
     .mobile-device .tank-info-label {
-      font-size: 24px;
+      font-size: 16px;
       font-weight: 800;
       line-height: 1.25;
       margin-bottom: 10px;
       color: #444;
     }
     .mobile-device .tank-info-value {
-      font-size: 32px;
+      font-size: 24px;
       font-weight: 800;
       line-height: 1.15;
     }
     .mobile-device .tank-progress { height: 24px; margin-top: 18px; }
     .mobile-device .tank-percent {
-      font-size: 23px;
+      font-size: 16px;
       font-weight: 800;
       line-height: 1.35;
       margin-top: 12px;
@@ -1892,11 +1892,16 @@
 
 
 
-    /* V97 – mobil: Tank/LKW nutzt jetzt bewusst die normalen
-       mobilen Standardgrößen wie das Dashboard.
-       Keine eigenen Extra-Groß-Regeln mehr. */
-    .mobile-device #page-tank {
-      font-size: inherit;
+
+
+    /* V98 – Tank/LKW mobil endgültig kompakter.
+       Die eigentlichen ursprünglichen Tank-Regeln wurden oben direkt geändert. */
+    .mobile-device #page-tank td::before {
+      font-size: 15px !important;
+    }
+
+    .mobile-device #page-tank td {
+      font-size: 16px !important;
     }
 
 </style>
@@ -2466,8 +2471,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=97"></script>
-<script src="api.js?v=97"></script>
+<script src="config.js?v=98"></script>
+<script src="api.js?v=98"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
