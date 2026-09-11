@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V81</title>
+  <title>Heizöl Hirmer – V82</title>
 
   <script>
     (function() {
@@ -1739,6 +1739,20 @@
       font-size: 25px;
     }
 
+
+    /* V82 – Aktionsbuttons rechts, wie zuvor */
+    #hirmerRefreshButton {
+      margin-left: auto;
+    }
+
+    #hirmerRefreshAllButton {
+      margin-left: 0;
+    }
+
+    .hirmer-logout-nav {
+      margin-left: 0 !important;
+    }
+
 </style>
 </head>
 
@@ -2540,11 +2554,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupNavigation() {
-  document.querySelectorAll('.nav-button').forEach(function(button) {
-    button.addEventListener('click', function() {
-      showPage(button.dataset.page);
+  document
+    .querySelectorAll(
+      '.nav-button[data-page]'
+    )
+    .forEach(function(button) {
+      button.addEventListener(
+        'click',
+        function() {
+          showPage(
+            button.dataset.page
+          );
+        }
+      );
     });
-  });
 }
 
 function showPage(pageName) {
@@ -4736,6 +4759,11 @@ function v74ManualRefresh_(){
     .then(function(){
       setLoading(false);
 
+      // V82: aktuelle Seite sichtbar/aktiv lassen.
+      showPage(
+        pageName
+      );
+
       showToast(
         'Diese Seite wurde aktualisiert.'
       );
@@ -4754,6 +4782,9 @@ function v74ManualRefresh_(){
 <script>
 
 function v79RefreshAll_(){
+  const pageName =
+    v79GetActivePage_();
+
   setLoading(true);
 
   Promise.all([
@@ -4815,6 +4846,11 @@ function v79RefreshAll_(){
       V77_PRICES_LOADED = true;
 
       setLoading(false);
+
+      // V82: auf der zuvor geöffneten Seite bleiben.
+      showPage(
+        pageName
+      );
 
       showToast(
         'Alle Daten wurden aktualisiert.'
