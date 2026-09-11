@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V92</title>
+  <title>Heizöl Hirmer – V93</title>
 
   <script>
     (function() {
@@ -1891,6 +1891,23 @@
       }
     }
 
+
+    /* V93 – nur mobil: Tank / LKW für den Fahrer leicht hervorheben */
+    .mobile-device .main-nav .nav-button[data-page="tank"] {
+      background: #e3f2e3 !important;
+      color: #245b2a !important;
+      border: 1px solid #bfdcC1 !important;
+    }
+
+    .mobile-device .main-nav .nav-button[data-page="tank"]:hover {
+      background: #d7ecd8 !important;
+    }
+
+    .mobile-device .main-nav .nav-button[data-page="tank"].active {
+      background: #cfe8d0 !important;
+      color: #1d4f23 !important;
+    }
+
 </style>
 </head>
 
@@ -2458,8 +2475,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=92"></script>
-<script src="api.js?v=92"></script>
+<script src="config.js?v=93"></script>
+<script src="api.js?v=93"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
