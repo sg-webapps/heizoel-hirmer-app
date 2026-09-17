@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V116</title>
+  <title>Heizöl Hirmer – V118</title>
 
   <script>
     (function() {
@@ -2450,7 +2450,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V116 – Versionsanzeige mobil größer */
+/* V118 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2460,7 +2460,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V116 – Versionsanzeige auf Mobile deutlich größer */
+/* V118 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2472,16 +2472,6 @@ html.mobile-device [class*="version"] {
   font-weight: 800 !important;
 }
 
-
-/* V116 – exakt die sichtbare Versionszeile auf Mobile */
-html.mobile-device #hirmerMobileVersion {
-  display: inline-block !important;
-  font-size: 22px !important;
-  line-height: 1.35 !important;
-  font-weight: 800 !important;
-  color: #555 !important;
-  letter-spacing: .2px !important;
-}
 
 </style>
 
@@ -2500,7 +2490,7 @@ html.mobile-device #hirmerMobileVersion {
 (function(){
   try{
     const url =
-      'config.js?_=' +
+      'config.js?v=118' +
       Date.now();
 
     fetch(url, {
@@ -3070,8 +3060,8 @@ html.mobile-device #hirmerMobileVersion {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=116"></script>
-<script src="api.js?v=116"></script>
+<script src="config.js?v=118"></script>
+<script src="api.js?v=118"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6173,10 +6163,10 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = '<span id="hirmerMobileVersion">Heizöl Hirmer · V116</span>';
+    el.textContent = 'Heizöl Hirmer · V118';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
-      'font:12px/1.3 Arial,Helvetica,sans-serif;color:#999;' +
+      'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
       '-webkit-text-size-adjust:100%;text-size-adjust:100%;';
   }
   if(document.readyState === 'loading'){
@@ -6285,6 +6275,94 @@ function toggleNewPasswordVisibility(inputId, button){
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
+  }
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   V118 – Frontend-Update-Mechanismus
+   Prüft bei jedem Start version.js mit Cache-Busting.
+   Bei neuer Version: Browser-Caches löschen, Service Worker
+   aktualisieren und genau einmal mit Cache-Buster neu laden.
+   Lokale App-Daten/Snapshots bleiben unangetastet.
+   ============================================================ */
+(function () {
+  const CURRENT_VERSION = '118';
+  const STORAGE_KEY = 'hirmer_frontend_version';
+
+  function v118ClearFrontendCaches_() {
+    const jobs = [];
+
+    if ('caches' in window) {
+      jobs.push(
+        caches.keys().then(function(keys) {
+          return Promise.all(keys.map(function(key) {
+            return caches.delete(key);
+          }));
+        }).catch(function(){})
+      );
+    }
+
+    if ('serviceWorker' in navigator) {
+      jobs.push(
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          return Promise.all(regs.map(function(reg) {
+            return reg.update().catch(function(){});
+          }));
+        }).catch(function(){})
+      );
+    }
+
+    return Promise.all(jobs);
+  }
+
+  function v118ReloadOnce_(version) {
+    const marker = 'hirmer_reload_' + version;
+    if (sessionStorage.getItem(marker) === '1') return;
+
+    sessionStorage.setItem(marker, '1');
+    localStorage.setItem(STORAGE_KEY, String(version));
+
+    v118ClearFrontendCaches_().finally(function() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_hv', String(version));
+      url.searchParams.set('_ht', String(Date.now()));
+      window.location.replace(url.toString());
+    });
+  }
+
+  function v118CheckForUpdate_() {
+    const script = document.createElement('script');
+    script.src = 'version.js?_=' + Date.now();
+    script.async = true;
+
+    script.onload = function() {
+      const latest = String(window.HIRMER_LATEST_VERSION || '');
+      const known = String(localStorage.getItem(STORAGE_KEY) || '');
+
+      if (latest && latest !== CURRENT_VERSION) {
+        v118ReloadOnce_(latest);
+        return;
+      }
+
+      if (known !== CURRENT_VERSION) {
+        localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
+      }
+    };
+
+    script.onerror = function() {
+      /* Offline/Netzfehler: App normal weiterlaufen lassen. */
+    };
+
+    document.head.appendChild(script);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', v118CheckForUpdate_);
+  } else {
+    v118CheckForUpdate_();
   }
 })();
 </script>
