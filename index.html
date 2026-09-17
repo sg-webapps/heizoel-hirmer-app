@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V115</title>
+  <title>Heizöl Hirmer – V116</title>
 
   <script>
     (function() {
@@ -2450,7 +2450,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V115 – Versionsanzeige mobil größer */
+/* V116 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2460,7 +2460,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V115 – Versionsanzeige auf Mobile deutlich größer */
+/* V116 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2470,6 +2470,17 @@ html.mobile-device [class*="version"] {
   font-size: 20px !important;
   line-height: 1.4 !important;
   font-weight: 800 !important;
+}
+
+
+/* V116 – exakt die sichtbare Versionszeile auf Mobile */
+html.mobile-device #hirmerMobileVersion {
+  display: inline-block !important;
+  font-size: 22px !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+  color: #555 !important;
+  letter-spacing: .2px !important;
 }
 
 </style>
@@ -3059,8 +3070,8 @@ html.mobile-device [class*="version"] {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=115"></script>
-<script src="api.js?v=115"></script>
+<script src="config.js?v=116"></script>
+<script src="api.js?v=116"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6162,7 +6173,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V115';
+    el.textContent = '<span id="hirmerMobileVersion">Heizöl Hirmer · V116</span>';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:12px/1.3 Arial,Helvetica,sans-serif;color:#999;' +
