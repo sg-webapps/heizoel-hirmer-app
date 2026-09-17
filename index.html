@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V118</title>
+  <title>Heizöl Hirmer – V119</title>
 
   <script>
     (function() {
@@ -2450,7 +2450,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V118 – Versionsanzeige mobil größer */
+/* V119 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2460,7 +2460,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V118 – Versionsanzeige auf Mobile deutlich größer */
+/* V119 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2472,6 +2472,19 @@ html.mobile-device [class*="version"] {
   font-weight: 800 !important;
 }
 
+
+
+/* V119 – Abmelden mobil ausschließlich im Burger-Menü */
+html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
+html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
+html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
+html.mobile-device a[onclick*="Logout"]:not(#v111MobileExtraMenu a),
+html.mobile-device .logout-btn:not(#v111MobileExtraMenu .logout-btn),
+html.mobile-device .logout-button:not(#v111MobileExtraMenu .logout-button),
+html.mobile-device #logoutBtn,
+html.mobile-device #logoutButton {
+  display: none !important;
+}
 
 </style>
 
@@ -2490,7 +2503,7 @@ html.mobile-device [class*="version"] {
 (function(){
   try{
     const url =
-      'config.js?v=118' +
+      'config.js?v=119' +
       Date.now();
 
     fetch(url, {
@@ -3060,8 +3073,8 @@ html.mobile-device [class*="version"] {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=118"></script>
-<script src="api.js?v=118"></script>
+<script src="config.js?v=119"></script>
+<script src="api.js?v=119"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6163,7 +6176,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V118';
+    el.textContent = 'Heizöl Hirmer · V119';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6282,7 +6295,7 @@ function toggleNewPasswordVisibility(inputId, button){
 
 <script>
 /* ============================================================
-   V118 – Frontend-Update-Mechanismus
+   V119 – Frontend-Update-Mechanismus
    Prüft bei jedem Start version.js mit Cache-Busting.
    Bei neuer Version: Browser-Caches löschen, Service Worker
    aktualisieren und genau einmal mit Cache-Buster neu laden.
