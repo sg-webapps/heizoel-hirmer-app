@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V110</title>
+  <title>Heizöl Hirmer – V111</title>
 
   <script>
     (function() {
@@ -2250,6 +2250,111 @@
       font-size: 0.9em;
     }
 
+
+/* ============================================================
+   V111 – MOBILE NAVIGATION
+   Desktop bleibt unverändert.
+   Mobil: 4 Hauptfunktionen in 2 Spalten + Hamburger-Menü.
+   ============================================================ */
+html.mobile-device .main-nav {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  padding: 12px 14px !important;
+  align-items: stretch !important;
+}
+
+html.mobile-device .main-nav > .mobile-primary-nav {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 72px !important;
+  padding: 12px 8px !important;
+  margin: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: normal !important;
+  font-size: 19px !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+  border-radius: 12px !important;
+}
+
+/* Gewünschte Reihenfolge der vier Hauptbuttons */
+html.mobile-device .main-nav > [data-page="dashboard"] { order: 1 !important; }
+html.mobile-device .main-nav > [data-page="orders"] { order: 2 !important; }
+html.mobile-device .main-nav > [data-page="tank"] { order: 3 !important; }
+html.mobile-device .main-nav > #hirmerRefreshAllButton { order: 4 !important; }
+
+/* Selten benötigte Punkte in der normalen mobilen Navigation ausblenden */
+html.mobile-device .main-nav > .mobile-secondary-nav {
+  display: none !important;
+}
+
+/* Hamburger über beide Spalten */
+html.mobile-device .main-nav > .v111-mobile-menu-toggle {
+  display: flex !important;
+  order: 5 !important;
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  min-height: 50px !important;
+  margin: 0 !important;
+  padding: 9px 12px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 17px !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+  border-radius: 10px !important;
+}
+
+/* Aufgeklapptes Zusatzmenü */
+html.mobile-device .main-nav > .v111-mobile-extra-menu {
+  display: none !important;
+  order: 6 !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  padding: 2px 0 0 !important;
+  margin: 0 !important;
+}
+
+html.mobile-device .main-nav > .v111-mobile-extra-menu.open {
+  display: grid !important;
+}
+
+html.mobile-device .v111-mobile-extra-menu .nav-button {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 54px !important;
+  padding: 9px 7px !important;
+  margin: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: normal !important;
+  font-size: 15px !important;
+  line-height: 1.15 !important;
+  font-weight: 750 !important;
+  border-radius: 10px !important;
+}
+
+/* Tank/LKW bleibt mobil grün */
+html.mobile-device .main-nav > [data-page="tank"] {
+  background: #d8efd9 !important;
+  color: #235c2a !important;
+  border-color: #b8dbbb !important;
+}
+
+/* Desktop: neue Mobile-Helfer komplett neutralisieren */
+html:not(.mobile-device) .v111-mobile-menu-toggle,
+html:not(.mobile-device) .v111-mobile-extra-menu {
+  display: none !important;
+}
+
 </style>
 
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=102">
@@ -2356,17 +2461,28 @@
 
 <div id="v88NavSentinel" aria-hidden="true"></div>
 <nav class="main-nav">
-  <button class="nav-button active" data-page="dashboard">Dashboard</button>
-  <button class="nav-button" data-page="orders">Aufträge</button>
-  <button class="nav-button" data-page="newOrder">Neuer Auftrag</button>
-  <button class="nav-button" data-page="cancelled">Stornierte Aufträge</button>
-  <button class="nav-button" data-page="customers">Kunden</button>
-  <button class="nav-button" data-page="tank">Tank / LKW</button>
-  <button class="nav-button" data-page="prices">Preiskalkulation</button>
-    <button class="nav-button" data-page="export">Export</button>
-  <button id="hirmerRefreshButton" class="nav-button" type="button" onclick="v74ManualRefresh_()">Aktualisieren</button>
-  <button id="hirmerRefreshAllButton" class="nav-button" type="button" onclick="v79RefreshAll_()">Alles aktualisieren</button>
-  <button class="nav-button hirmer-settings-nav" data-page="settings">Einstellungen</button>
+  <button class="nav-button active mobile-primary-nav" data-page="dashboard">Dashboard</button>
+  <button class="nav-button mobile-primary-nav" data-page="orders">Aufträge</button>
+
+  <button class="nav-button mobile-secondary-nav" data-page="newOrder">Neuer Auftrag</button>
+  <button class="nav-button mobile-secondary-nav" data-page="cancelled">Stornierte Aufträge</button>
+  <button class="nav-button mobile-secondary-nav" data-page="customers">Kunden</button>
+
+  <button class="nav-button mobile-primary-nav" data-page="tank">Tank / LKW</button>
+
+  <button class="nav-button mobile-secondary-nav" data-page="prices">Preiskalkulation</button>
+  <button class="nav-button mobile-secondary-nav" data-page="export">Export</button>
+  <button id="hirmerRefreshButton" class="nav-button mobile-secondary-nav" type="button" onclick="v74ManualRefresh_()">Aktualisieren</button>
+
+  <button id="hirmerRefreshAllButton" class="nav-button mobile-primary-nav" type="button" onclick="v79RefreshAll_()">Alles aktualisieren</button>
+
+  <button class="nav-button hirmer-settings-nav mobile-secondary-nav" data-page="settings">Einstellungen</button>
+
+  <button id="v111MobileMenuButton" class="nav-button v111-mobile-menu-toggle" type="button"
+          aria-expanded="false" aria-controls="v111MobileExtraMenu"
+          onclick="v111ToggleMobileMenu_()">☰ Menü</button>
+
+  <div id="v111MobileExtraMenu" class="v111-mobile-extra-menu" aria-hidden="true"></div>
 </nav>
 <div id="v88NavSpacer" aria-hidden="true"></div>
 
@@ -2826,8 +2942,8 @@
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=110"></script>
-<script src="api.js?v=110"></script>
+<script src="config.js?v=111"></script>
+<script src="api.js?v=111"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -5893,7 +6009,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V110';
+    el.textContent = 'Heizöl Hirmer · V111';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:12px/1.3 Arial,Helvetica,sans-serif;color:#999;' +
@@ -5903,6 +6019,108 @@ function toggleNewPasswordVisibility(inputId, button){
     document.addEventListener('DOMContentLoaded', showMobileVersion);
   }else{
     showMobileVersion();
+  }
+})();
+</script>
+
+
+<script>
+/* V111 – Hamburger-Menü nur für die mobile Ansicht */
+(function () {
+  function buildV111MobileMenu_() {
+    var nav = document.querySelector('.main-nav');
+    var extra = document.getElementById('v111MobileExtraMenu');
+    if (!nav || !extra || extra.dataset.built === '1') return;
+
+    var secondary = nav.querySelectorAll(':scope > .mobile-secondary-nav');
+    secondary.forEach(function (button) {
+      var clone = button.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.classList.remove('mobile-secondary-nav', 'hirmer-settings-nav');
+      clone.classList.add('v111-mobile-extra-button');
+
+      clone.addEventListener('click', function () {
+        setTimeout(function () {
+          v111CloseMobileMenu_();
+        }, 0);
+      });
+
+      extra.appendChild(clone);
+    });
+
+    /* Abmelden existiert in der App außerhalb der bisherigen nav;
+       vorhandenen Logout-Button suchen und als mobilen Menüpunkt spiegeln. */
+    var logout =
+      document.querySelector('.logout-button') ||
+      document.querySelector('[onclick*="logout"]') ||
+      document.querySelector('[onclick*="Logout"]') ||
+      document.getElementById('logoutButton');
+
+    if (logout) {
+      var logoutClone = logout.cloneNode(true);
+      logoutClone.removeAttribute('id');
+      logoutClone.classList.add('nav-button', 'v111-mobile-extra-button');
+      logoutClone.addEventListener('click', function () {
+        setTimeout(function () {
+          v111CloseMobileMenu_();
+        }, 0);
+      });
+      extra.appendChild(logoutClone);
+    }
+
+    extra.dataset.built = '1';
+  }
+
+  window.v111CloseMobileMenu_ = function () {
+    var extra = document.getElementById('v111MobileExtraMenu');
+    var button = document.getElementById('v111MobileMenuButton');
+    if (extra) {
+      extra.classList.remove('open');
+      extra.setAttribute('aria-hidden', 'true');
+    }
+    if (button) {
+      button.setAttribute('aria-expanded', 'false');
+      button.textContent = '☰ Menü';
+    }
+  };
+
+  window.v111ToggleMobileMenu_ = function () {
+    buildV111MobileMenu_();
+
+    var extra = document.getElementById('v111MobileExtraMenu');
+    var button = document.getElementById('v111MobileMenuButton');
+    if (!extra || !button) return;
+
+    var open = !extra.classList.contains('open');
+
+    if (open) {
+      extra.classList.add('open');
+      extra.setAttribute('aria-hidden', 'false');
+      button.setAttribute('aria-expanded', 'true');
+      button.textContent = '✕ Menü schließen';
+    } else {
+      v111CloseMobileMenu_();
+    }
+  };
+
+  function init() {
+    buildV111MobileMenu_();
+
+    document.addEventListener('click', function (event) {
+      var pageButton = event.target.closest('[data-page]');
+      if (
+        pageButton &&
+        pageButton.closest('#v111MobileExtraMenu')
+      ) {
+        v111CloseMobileMenu_();
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
 </script>
