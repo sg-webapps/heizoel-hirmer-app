@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V111</title>
+  <title>Heizöl Hirmer – V112</title>
 
   <script>
     (function() {
@@ -2355,6 +2355,100 @@ html:not(.mobile-device) .v111-mobile-extra-menu {
   display: none !important;
 }
 
+
+/* ============================================================
+   V112 – MOBILE NAVIGATION, exakt zwei Zeilen
+   Zeile 1: Menü | Alles aktualisieren | Dashboard
+   Zeile 2: Tank/LKW | Aufträge
+   ============================================================ */
+html.mobile-device .main-nav {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  padding: 10px 12px !important;
+  align-items: stretch !important;
+}
+
+/* Hauptbuttons kompakter, damit die Navigation exakt zwei Zeilen bleibt */
+html.mobile-device .main-nav > .mobile-primary-nav,
+html.mobile-device .main-nav > .v111-mobile-menu-toggle {
+  min-width: 0 !important;
+  width: 100% !important;
+  min-height: 62px !important;
+  padding: 8px 5px !important;
+  margin: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: normal !important;
+  font-size: 17px !important;
+  line-height: 1.08 !important;
+  font-weight: 800 !important;
+  border-radius: 11px !important;
+}
+
+/* Zeile 1: je 2/6 = drei gleich breite Felder */
+html.mobile-device .main-nav > .v111-mobile-menu-toggle {
+  display: flex !important;
+  order: 1 !important;
+  grid-column: 1 / span 2 !important;
+}
+html.mobile-device .main-nav > #hirmerRefreshAllButton {
+  order: 2 !important;
+  grid-column: 3 / span 2 !important;
+}
+html.mobile-device .main-nav > [data-page="dashboard"] {
+  order: 3 !important;
+  grid-column: 5 / span 2 !important;
+}
+
+/* Zeile 2: zwei gleich breite Felder */
+html.mobile-device .main-nav > [data-page="tank"] {
+  order: 4 !important;
+  grid-column: 1 / span 3 !important;
+}
+html.mobile-device .main-nav > [data-page="orders"] {
+  order: 5 !important;
+  grid-column: 4 / span 3 !important;
+}
+
+/* Zusatzmenü ist ein Overlay und erzeugt KEINE dritte Navigationszeile */
+html.mobile-device .main-nav > .v111-mobile-extra-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  left: 12px !important;
+  right: 12px !important;
+  z-index: 10050 !important;
+  width: auto !important;
+  max-height: 65vh !important;
+  overflow-y: auto !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  padding: 10px !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #dddddd !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18) !important;
+}
+
+/* Hamburger optisch klarer */
+html.mobile-device .main-nav > .v111-mobile-menu-toggle {
+  background: #efefef !important;
+  color: #222 !important;
+}
+
+/* Abmelden darf mobil nur im Burger-Menü erscheinen */
+html.mobile-device body > .logout-button,
+html.mobile-device .topbar .logout-button,
+html.mobile-device .header-actions .logout-button,
+html.mobile-device .main-nav > .logout-button,
+html.mobile-device #logoutButton {
+  display: none !important;
+}
+
+
+html.mobile-device .main-nav { position: sticky !important; }
 </style>
 
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=102">
@@ -2942,8 +3036,8 @@ html:not(.mobile-device) .v111-mobile-extra-menu {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=111"></script>
-<script src="api.js?v=111"></script>
+<script src="config.js?v=112"></script>
+<script src="api.js?v=112"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6009,7 +6103,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V111';
+    el.textContent = 'Heizöl Hirmer · V112';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:12px/1.3 Arial,Helvetica,sans-serif;color:#999;' +
@@ -6097,7 +6191,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.classList.add('open');
       extra.setAttribute('aria-hidden', 'false');
       button.setAttribute('aria-expanded', 'true');
-      button.textContent = '✕ Menü schließen';
+      button.textContent = '✕ Schließen';
     } else {
       v111CloseMobileMenu_();
     }
