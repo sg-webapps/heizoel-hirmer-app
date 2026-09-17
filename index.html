@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V119</title>
+  <title>Heizöl Hirmer – V120</title>
 
   <script>
     (function() {
@@ -2450,7 +2450,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V119 – Versionsanzeige mobil größer */
+/* V120 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2460,7 +2460,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V119 – Versionsanzeige auf Mobile deutlich größer */
+/* V120 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2474,7 +2474,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V119 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V120 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2483,6 +2483,12 @@ html.mobile-device .logout-btn:not(#v111MobileExtraMenu .logout-btn),
 html.mobile-device .logout-button:not(#v111MobileExtraMenu .logout-button),
 html.mobile-device #logoutBtn,
 html.mobile-device #logoutButton {
+  display: none !important;
+}
+
+
+/* V120 – der tatsächlich sichtbare Abmelde-Button */
+html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
@@ -2503,7 +2509,7 @@ html.mobile-device #logoutButton {
 (function(){
   try{
     const url =
-      'config.js?v=119' +
+      'config.js?v=120' +
       Date.now();
 
     fetch(url, {
@@ -3073,8 +3079,8 @@ html.mobile-device #logoutButton {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=119"></script>
-<script src="api.js?v=119"></script>
+<script src="config.js?v=120"></script>
+<script src="api.js?v=120"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6176,7 +6182,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V119';
+    el.textContent = 'Heizöl Hirmer · V120';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6235,7 +6241,26 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(logoutClone);
     }
 
-    extra.dataset.built = '1';
+    
+    /* V120: Abmelden explizit im Burger-Menü sicherstellen */
+    if (!extra.querySelector('.v120-mobile-logout')) {
+      var mobileLogout = document.createElement('button');
+      mobileLogout.type = 'button';
+      mobileLogout.className = 'nav-button v111-mobile-extra-button v120-mobile-logout';
+      mobileLogout.textContent = 'Abmelden';
+      mobileLogout.addEventListener('click', function () {
+        var original = document.getElementById('authLogoutBtn');
+        if (original) {
+          original.click();
+        } else if (typeof logout === 'function') {
+          logout();
+        }
+        v111CloseMobileMenu_();
+      });
+      extra.appendChild(mobileLogout);
+    }
+
+extra.dataset.built = '1';
   }
 
   window.v111CloseMobileMenu_ = function () {
@@ -6295,7 +6320,7 @@ function toggleNewPasswordVisibility(inputId, button){
 
 <script>
 /* ============================================================
-   V119 – Frontend-Update-Mechanismus
+   V120 – Frontend-Update-Mechanismus
    Prüft bei jedem Start version.js mit Cache-Busting.
    Bei neuer Version: Browser-Caches löschen, Service Worker
    aktualisieren und genau einmal mit Cache-Buster neu laden.
@@ -6378,6 +6403,23 @@ function toggleNewPasswordVisibility(inputId, button){
     v118CheckForUpdate_();
   }
 })();
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var extra = document.getElementById('v111MobileExtraMenu');
+  if (!extra) return;
+  setTimeout(function(){
+    var buttons = Array.from(extra.querySelectorAll('button'));
+    var logoutButtons = buttons.filter(function(b){
+      return (b.textContent || '').trim() === 'Abmelden';
+    });
+    logoutButtons.forEach(function(b, i){
+      if (i > 0) b.remove();
+    });
+  }, 50);
+});
 </script>
 
 </body>
