@@ -1,10 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
+
+  <!-- V122: robuster Update-Bootstrap ganz am Anfang -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script>
+  (function(){
+    var CURRENT='122', PREFIX='hirmer_update_once_';
+
+    function cleanup(){
+      var jobs=[];
+      if('caches' in window){
+        jobs.push(caches.keys().then(function(keys){
+          return Promise.all(keys.map(function(k){return caches.delete(k);}));
+        }).catch(function(){}));
+      }
+      if('serviceWorker' in navigator){
+        jobs.push(navigator.serviceWorker.getRegistrations().then(function(regs){
+          return Promise.all(regs.map(function(reg){
+            return reg.unregister().catch(function(){});
+          }));
+        }).catch(function(){}));
+      }
+      return Promise.all(jobs);
+    }
+
+    function reloadTo(latest){
+      var key=PREFIX+latest;
+      if(sessionStorage.getItem(key)==='1') return;
+      sessionStorage.setItem(key,'1');
+      cleanup().finally(function(){
+        var u=new URL(location.href);
+        u.searchParams.set('v',latest);
+        u.searchParams.set('_update',Date.now().toString());
+        location.replace(u.toString());
+      });
+    }
+
+    fetch('version.js?_='+Date.now(),{
+      cache:'no-store',
+      credentials:'same-origin'
+    })
+    .then(function(r){
+      if(!r.ok) throw new Error('version check failed');
+      return r.text();
+    })
+    .then(function(text){
+      var m=text.match(/HIRMER_LATEST_VERSION\s*=\s*["']([^"']+)["']/);
+      var latest=m?String(m[1]):'';
+      if(latest && latest!==CURRENT) reloadTo(latest);
+    })
+    .catch(function(){});
+  })();
+  </script>
+
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V121</title>
+  <title>Heizöl Hirmer – V122</title>
 
   <script>
     (function() {
@@ -2450,7 +2505,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V121 – Versionsanzeige mobil größer */
+/* V122 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2460,7 +2515,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V121 – Versionsanzeige auf Mobile deutlich größer */
+/* V122 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2474,7 +2529,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V121 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V122 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2487,13 +2542,13 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V121 – der tatsächlich sichtbare Abmelde-Button */
+/* V122 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V121 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V122 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
@@ -2515,7 +2570,7 @@ html.mobile-device #hirmerLogoutButton {
 (function(){
   try{
     const url =
-      'config.js?v=121' +
+      'config.js?v=122' +
       Date.now();
 
     fetch(url, {
@@ -3085,8 +3140,8 @@ html.mobile-device #hirmerLogoutButton {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=121"></script>
-<script src="api.js?v=121"></script>
+<script src="config.js?v=122"></script>
+<script src="api.js?v=122"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6188,7 +6243,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V121';
+    el.textContent = 'Heizöl Hirmer · V122';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6227,7 +6282,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V121: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V122: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6302,7 +6357,7 @@ extra.dataset.built = '1';
 
 <script>
 /* ============================================================
-   V121 – Frontend-Update-Mechanismus
+   V122 – Frontend-Update-Mechanismus
    Prüft bei jedem Start version.js mit Cache-Busting.
    Bei neuer Version: Browser-Caches löschen, Service Worker
    aktualisieren und genau einmal mit Cache-Buster neu laden.
