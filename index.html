@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V113</title>
+  <title>Heizöl Hirmer – V114</title>
 
   <script>
     (function() {
@@ -2449,6 +2449,16 @@ html.mobile-device #logoutButton {
 
 
 html.mobile-device .main-nav { position: sticky !important; }
+
+/* V114 – Versionsanzeige mobil größer */
+html.mobile-device footer,
+html.mobile-device .footer,
+html.mobile-device #footer,
+html.mobile-device [class*="footer"] {
+  font-size: 16px !important;
+  line-height: 1.35 !important;
+}
+
 </style>
 
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=102">
@@ -3036,8 +3046,8 @@ html.mobile-device .main-nav { position: sticky !important; }
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=113"></script>
-<script src="api.js?v=113"></script>
+<script src="config.js?v=114"></script>
+<script src="api.js?v=114"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -4202,7 +4212,7 @@ function renderOrders() {
     return;
   }
 
-  v113SortNewestFirst_(APP.orders).forEach(function(order) {
+  (APP.orders || []).slice().reverse().forEach(function(order) {
     const address = [order.street, order.zip, order.city].filter(Boolean).join(', ');
     const status = String(order.status || 'Offen');
     const statusClass = status.toLowerCase() === 'geliefert' ? 'status-done' : 'status-open';
@@ -4242,7 +4252,7 @@ function renderCancelledOrders() {
     return;
   }
 
-  v113SortNewestFirst_(APP.cancelledOrders).forEach(function(order) {
+  (APP.cancelledOrders || []).slice().reverse().forEach(function(order) {
     const tr = document.createElement('tr');
     tr.innerHTML =
       '<td data-label="Lieferdatum">' + escapeHtml(order.deliveryDate || '') + '</td>' +
@@ -6139,7 +6149,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V113';
+    el.textContent = 'Heizöl Hirmer · V114';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:12px/1.3 Arial,Helvetica,sans-serif;color:#999;' +
