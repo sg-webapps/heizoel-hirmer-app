@@ -2,13 +2,13 @@
 <html>
 <head>
 
-  <!-- V122: robuster Update-Bootstrap ganz am Anfang -->
+  <!-- V123: robuster Update-Bootstrap ganz am Anfang -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
   (function(){
-    var CURRENT='122', PREFIX='hirmer_update_once_';
+    var CURRENT='123', PREFIX='hirmer_update_once_';
 
     function cleanup(){
       var jobs=[];
@@ -59,7 +59,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V122</title>
+  <title>Heizöl Hirmer – V123</title>
 
   <script>
     (function() {
@@ -2505,7 +2505,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V122 – Versionsanzeige mobil größer */
+/* V123 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2515,7 +2515,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V122 – Versionsanzeige auf Mobile deutlich größer */
+/* V123 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2529,7 +2529,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V122 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V123 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2542,13 +2542,13 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V122 – der tatsächlich sichtbare Abmelde-Button */
+/* V123 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V122 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V123 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
@@ -2570,7 +2570,7 @@ html.mobile-device #hirmerLogoutButton {
 (function(){
   try{
     const url =
-      'config.js?v=122' +
+      'config.js?v=123' +
       Date.now();
 
     fetch(url, {
@@ -3140,8 +3140,8 @@ html.mobile-device #hirmerLogoutButton {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=122"></script>
-<script src="api.js?v=122"></script>
+<script src="config.js?v=123"></script>
+<script src="api.js?v=123"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -5207,7 +5207,7 @@ function saveTankCorrection() {
         'tankCorrectionNote'
       ).value = '';
 
-      closeTankCorrectionModal();
+      
 
       setLoading(false);
 
@@ -6243,7 +6243,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V122';
+    el.textContent = 'Heizöl Hirmer · V123';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6282,7 +6282,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V122: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V123: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6357,7 +6357,7 @@ extra.dataset.built = '1';
 
 <script>
 /* ============================================================
-   V122 – Frontend-Update-Mechanismus
+   V123 – Frontend-Update-Mechanismus
    Prüft bei jedem Start version.js mit Cache-Busting.
    Bei neuer Version: Browser-Caches löschen, Service Worker
    aktualisieren und genau einmal mit Cache-Buster neu laden.
