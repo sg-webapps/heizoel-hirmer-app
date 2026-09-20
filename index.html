@@ -2,14 +2,14 @@
 <html>
 <head>
 
-  <meta name="hirmer-build" content="127">
-  <!-- V127: direkte Prüfung der aktuellen index.html -->
+  <meta name="hirmer-build" content="128">
+  <!-- V128: direkte Prüfung der aktuellen index.html -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
   (function(){
-    var CURRENT='127';
+    var CURRENT='128';
     var RELOAD_KEY='hirmer_html_reload_'+CURRENT;
 
     function extractBuild(text){
@@ -63,13 +63,13 @@
   </script>
 
 
-  <!-- V127: robuster Update-Bootstrap ganz am Anfang -->
+  <!-- V128: robuster Update-Bootstrap ganz am Anfang -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
   (function(){
-    var CURRENT='127', PREFIX='hirmer_update_once_';
+    var CURRENT='128', PREFIX='hirmer_update_once_';
 
     function cleanup(){
       var jobs=[];
@@ -120,7 +120,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V127</title>
+  <title>Heizöl Hirmer – V128</title>
 
   <script>
     (function() {
@@ -2566,7 +2566,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V127 – Versionsanzeige mobil größer */
+/* V128 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2576,7 +2576,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V127 – Versionsanzeige auf Mobile deutlich größer */
+/* V128 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2590,7 +2590,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V127 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V128 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2603,26 +2603,26 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V127 – der tatsächlich sichtbare Abmelde-Button */
+/* V128 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V127 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V128 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
 
 
-/* V127 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
-#hirmerDesktopHeaderV127 { display:none; }
+/* V128 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
+#hirmerDesktopHeaderV128 { display:none; }
 
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV127 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV128 {
     display:block;
     width:100%;
-    height:230px;
+    height:330px;
     background:url("header-desktop.png") center center / cover no-repeat;
     border-bottom:4px solid #d40000;
   }
@@ -2650,13 +2650,13 @@ html.mobile-device #hirmerLogoutButton {
 </head>
 
 <body class="auth-locked">
-<div id="hirmerDesktopHeaderV127" aria-hidden="true"></div>
+<div id="hirmerDesktopHeaderV128" aria-hidden="true"></div>
 
 <script>
 (function(){
   try{
     const url =
-      'config.js?v=127' +
+      'config.js?v=128' +
       Date.now();
 
     fetch(url, {
@@ -3226,8 +3226,8 @@ html.mobile-device #hirmerLogoutButton {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=127"></script>
-<script src="api.js?v=127"></script>
+<script src="config.js?v=128"></script>
+<script src="api.js?v=128"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6329,7 +6329,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V127';
+    el.textContent = 'Heizöl Hirmer · V128';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6363,7 +6363,7 @@ function toggleNewPasswordVisibility(inputId, button){
         event.preventDefault();
         event.stopPropagation();
 
-        /* V127: cloneNode kopiert keine per addEventListener registrierten
+        /* V128: cloneNode kopiert keine per addEventListener registrierten
            Click-Handler. Daher den originalen Navigationsbutton auslösen. */
         button.click();
 
@@ -6375,7 +6375,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V127: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V128: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6450,7 +6450,7 @@ extra.dataset.built = '1';
 
 <script>
 /* ============================================================
-   V127 – Frontend-Update-Mechanismus
+   V128 – Frontend-Update-Mechanismus
    Prüft bei jedem Start version.js mit Cache-Busting.
    Bei neuer Version: Browser-Caches löschen, Service Worker
    aktualisieren und genau einmal mit Cache-Buster neu laden.
