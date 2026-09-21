@@ -2,14 +2,14 @@
 <html>
 <head>
 
-  <meta name="hirmer-build" content="133">
-  <!-- V133: direkte Prüfung der aktuellen index.html -->
+  <meta name="hirmer-build" content="134">
+  <!-- V134: direkte Prüfung der aktuellen index.html -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
   (function(){
-    var CURRENT='133';
+    var CURRENT='134';
     var RELOAD_KEY='hirmer_html_reload_'+CURRENT;
 
     function extractBuild(text){
@@ -63,13 +63,13 @@
   </script>
 
 
-  <!-- V133: robuster Update-Bootstrap ganz am Anfang -->
+  <!-- V134: robuster Update-Bootstrap ganz am Anfang -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
   (function(){
-    var CURRENT='133', PREFIX='hirmer_update_once_';
+    var CURRENT='134', PREFIX='hirmer_update_once_';
 
     function cleanup(){
       var jobs=[];
@@ -120,7 +120,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V133</title>
+  <title>Heizöl Hirmer – V134</title>
 
   <script>
     (function() {
@@ -2566,7 +2566,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V133 – Versionsanzeige mobil größer */
+/* V134 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2576,7 +2576,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V133 – Versionsanzeige auf Mobile deutlich größer */
+/* V134 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2590,7 +2590,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V133 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V134 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2603,23 +2603,23 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V133 – der tatsächlich sichtbare Abmelde-Button */
+/* V134 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V133 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V134 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
 
 
-/* V133 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
-#hirmerDesktopHeaderV133 { display:none; }
+/* V134 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
+#hirmerDesktopHeaderV134 { display:none; }
 
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV133 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV134 {
     display:block;
     width:100%;
     height:350px;
@@ -2638,15 +2638,15 @@ html.mobile-device #hirmerLogoutButton {
 }
 
 
-/* V133 – Desktop-Header als Home-Link */
+/* V134 – Desktop-Header als Home-Link */
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV133 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV134 {
     cursor: pointer;
   }
 }
 
 
-/* V133 – auch Mobile-Header als Home-Link */
+/* V134 – auch Mobile-Header als Home-Link */
 html.mobile-device .topbar.hirmer-header-v35 {
   cursor: pointer;
 }
@@ -2664,13 +2664,13 @@ html.mobile-device .topbar.hirmer-header-v35 {
 </head>
 
 <body class="auth-locked">
-<div id="hirmerDesktopHeaderV133" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
+<div id="hirmerDesktopHeaderV134" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
 
 <script>
 (function(){
   try{
     const url =
-      'config.js?v=133' +
+      'config.js?v=134' +
       Date.now();
 
     fetch(url, {
@@ -3240,8 +3240,8 @@ html.mobile-device .topbar.hirmer-header-v35 {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=133"></script>
-<script src="api.js?v=133"></script>
+<script src="config.js?v=134"></script>
+<script src="api.js?v=134"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -5918,93 +5918,132 @@ function v74ManualRefresh_(){
 </script>
 <script>
 
-function v79RefreshAll_(){
+async function v134ReadWithRetry_(action){
+  let lastError = null;
+
+  for(let attempt = 0; attempt < 2; attempt++){
+    try{
+      return await window.API.readOnce(
+        action,
+        [],
+        45000
+      );
+    }catch(error){
+      lastError = error;
+
+      // Nur bei Lade-/Verbindungsproblemen einmal automatisch wiederholen.
+      const message =
+        String(
+          (error && error.message) ||
+          error ||
+          ''
+        );
+
+      const transient =
+        /Zeitüberschreitung|Verbindung zum Datenserver fehlgeschlagen|Daten konnten nicht geladen/i
+          .test(message);
+
+      if(!transient || attempt >= 1){
+        throw error;
+      }
+
+      await new Promise(function(resolve){
+        setTimeout(resolve, 1500);
+      });
+    }
+  }
+
+  throw lastError || new Error(
+    'Daten konnten nicht geladen werden.'
+  );
+}
+
+async function v79RefreshAll_(){
   const pageName =
     v79GetActivePage_();
 
   setLoading(true);
 
-  Promise.all([
-    window.API.readOnce(
-      'getCoreData',
-      [],
-      45000
-    ),
-    window.API.readOnce(
-      'getTankData',
-      [],
-      45000
-    ),
-    window.API.readOnce(
-      'getPriceData',
-      [],
-      45000
-    )
-  ])
-    .then(function(results){
-
-      v75MergeAppData_(
-        results[0]
+  try{
+    // V134: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
+    // Das reduziert gleichzeitige Serverzugriffe und stabilisiert Tank/LKW.
+    const coreData =
+      await v134ReadWithRetry_(
+        'getCoreData'
       );
 
-      v75MergeAppData_({
-        vehicle:
-          results[1] &&
-          results[1].vehicle
-            ? results[1].vehicle
-            : {},
-        tankMovements:
-          results[1] &&
-          Array.isArray(
-            results[1].tankMovements
-          )
-            ? results[1].tankMovements
-            : []
-      });
+    v75MergeAppData_(
+      coreData
+    );
 
-      v75MergeAppData_({
-        prices:
-          results[2] &&
-          Array.isArray(
-            results[2].prices
-          )
-            ? results[2].prices
-            : [],
-        priceTable:
-          results[2] &&
-          results[2].priceTable
-            ? results[2].priceTable
-            : {
-                purchasePrice: null,
-                purchaseDate: '',
-                vat: 19,
-                tiers: []
-              }
-      });
-
-      V77_TANK_LOADED = true;
-      V77_PRICES_LOADED = true;
-
-      setLoading(false);
-
-      // V82: auf der zuvor geöffneten Seite bleiben.
-      showPage(
-        pageName
+    const tankData =
+      await v134ReadWithRetry_(
+        'getTankData'
       );
 
-      showToast(
-        'Alle Daten wurden aktualisiert.'
-      );
-    })
-    .catch(function(error){
-      setLoading(false);
-
-      showToast(
-        error.message ||
-        String(error),
-        true
-      );
+    v75MergeAppData_({
+      vehicle:
+        tankData &&
+        tankData.vehicle
+          ? tankData.vehicle
+          : {},
+      tankMovements:
+        tankData &&
+        Array.isArray(
+          tankData.tankMovements
+        )
+          ? tankData.tankMovements
+          : []
     });
+
+    V77_TANK_LOADED = true;
+
+    const priceData =
+      await v134ReadWithRetry_(
+        'getPriceData'
+      );
+
+    v75MergeAppData_({
+      prices:
+        priceData &&
+        Array.isArray(
+          priceData.prices
+        )
+          ? priceData.prices
+          : [],
+      priceTable:
+        priceData &&
+        priceData.priceTable
+          ? priceData.priceTable
+          : {
+              purchasePrice: null,
+              purchaseDate: '',
+              vat: 19,
+              tiers: []
+            }
+    });
+
+    V77_PRICES_LOADED = true;
+
+    setLoading(false);
+
+    showPage(
+      pageName
+    );
+
+    showToast(
+      'Alle Daten wurden aktualisiert.'
+    );
+
+  }catch(error){
+    setLoading(false);
+
+    showToast(
+      error.message ||
+      String(error),
+      true
+    );
+  }
 }
 </script>
 
@@ -6353,7 +6392,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V133';
+    el.textContent = 'Heizöl Hirmer · V134';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6387,7 +6426,7 @@ function toggleNewPasswordVisibility(inputId, button){
         event.preventDefault();
         event.stopPropagation();
 
-        /* V133: cloneNode kopiert keine per addEventListener registrierten
+        /* V134: cloneNode kopiert keine per addEventListener registrierten
            Click-Handler. Daher den originalen Navigationsbutton auslösen. */
         button.click();
 
@@ -6399,7 +6438,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V133: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V134: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6474,7 +6513,7 @@ extra.dataset.built = '1';
 
 <script>
 /* ============================================================
-   V133 – Frontend-Update-Mechanismus
+   V134 – Frontend-Update-Mechanismus
    Prüft bei jedem Start version.js mit Cache-Busting.
    Bei neuer Version: Browser-Caches löschen, Service Worker
    aktualisieren und genau einmal mit Cache-Buster neu laden.
@@ -6573,7 +6612,7 @@ extra.dataset.built = '1';
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    var header = document.getElementById('hirmerDesktopHeaderV133');
+    var header = document.getElementById('hirmerDesktopHeaderV134');
     if (!header) return;
     header.addEventListener('click', v130GoDashboard);
     header.addEventListener('keydown', function(e){
