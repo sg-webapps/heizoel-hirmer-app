@@ -430,7 +430,7 @@ window.API = (function(){
         args,
         {
           retries: 0,
-          timeoutMs: timeoutMs || 25000
+          timeoutMs: timeoutMs || 45000
         }
       );
     },
