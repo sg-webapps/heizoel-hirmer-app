@@ -2,14 +2,14 @@
 <html>
 <head>
 
-  <meta name="hirmer-build" content="134">
-  <!-- V134: direkte Prüfung der aktuellen index.html -->
+  <meta name="hirmer-build" content="135">
+  <!-- V135: direkte Prüfung der aktuellen index.html -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
   (function(){
-    var CURRENT='134';
+    var CURRENT='135';
     var RELOAD_KEY='hirmer_html_reload_'+CURRENT;
 
     function extractBuild(text){
@@ -63,13 +63,13 @@
   </script>
 
 
-  <!-- V134: robuster Update-Bootstrap ganz am Anfang -->
+  <!-- V135: robuster Update-Bootstrap ganz am Anfang -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
   (function(){
-    var CURRENT='134', PREFIX='hirmer_update_once_';
+    var CURRENT='135', PREFIX='hirmer_update_once_';
 
     function cleanup(){
       var jobs=[];
@@ -120,7 +120,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V134</title>
+  <title>Heizöl Hirmer – V135</title>
 
   <script>
     (function() {
@@ -2566,7 +2566,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V134 – Versionsanzeige mobil größer */
+/* V135 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2576,7 +2576,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V134 – Versionsanzeige auf Mobile deutlich größer */
+/* V135 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2590,7 +2590,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V134 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V135 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2603,23 +2603,23 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V134 – der tatsächlich sichtbare Abmelde-Button */
+/* V135 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V134 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V135 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
 
 
-/* V134 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
-#hirmerDesktopHeaderV134 { display:none; }
+/* V135 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
+#hirmerDesktopHeaderV135 { display:none; }
 
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV134 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV135 {
     display:block;
     width:100%;
     height:350px;
@@ -2638,15 +2638,15 @@ html.mobile-device #hirmerLogoutButton {
 }
 
 
-/* V134 – Desktop-Header als Home-Link */
+/* V135 – Desktop-Header als Home-Link */
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV134 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV135 {
     cursor: pointer;
   }
 }
 
 
-/* V134 – auch Mobile-Header als Home-Link */
+/* V135 – auch Mobile-Header als Home-Link */
 html.mobile-device .topbar.hirmer-header-v35 {
   cursor: pointer;
 }
@@ -2661,16 +2661,24 @@ html.mobile-device .topbar.hirmer-header-v35 {
   <meta name="apple-mobile-web-app-title" content="Heizöl Hirmer">
   <meta name="theme-color" content="#c40000">
 
+<style id="hirmer-v135-fixes">
+#pricesTableBody tr.current-price-row td { color:#b40000 !important; font-weight:800 !important; }
+#customerModal { z-index:10050 !important; }
+#customerModal .modal-content { position:relative; z-index:10051 !important; max-height:calc(100vh - 40px); overflow-y:auto; }
+#orderCustomerHint { background:#fff7e6 !important; border:2px solid #d79a22 !important; font-weight:700; }
+.field-hint { margin-top:7px; font-size:.9em; color:#666; }
+.mobile-device #customerModal .modal-content { max-height:calc(100vh - 24px); overflow-y:auto; }
+</style>
 </head>
 
 <body class="auth-locked">
-<div id="hirmerDesktopHeaderV134" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
+<div id="hirmerDesktopHeaderV135" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
 
 <script>
 (function(){
   try{
     const url =
-      'config.js?v=134' +
+      'config.js?v=135' +
       Date.now();
 
     fetch(url, {
@@ -2906,7 +2914,12 @@ html.mobile-device .topbar.hirmer-header-v35 {
           <div id="orderPriceDetail" class="price-box-detail">Bitte Literzahl eingeben.</div>
         </div>
       </div>
-      <div class="form-group full"><label>Bemerkung</label><textarea id="orderNote"></textarea></div>
+      <div class="form-group full" id="orderCustomerHintGroup" style="display:none">
+        <label>Kundenhinweis</label>
+        <textarea id="orderCustomerHint" readonly></textarea>
+        <div class="field-hint">Dauerhafter Hinweis aus den Kundenstammdaten. Änderungen bitte unter „Kunden“ vornehmen.</div>
+      </div>
+      <div class="form-group full"><label>Bemerkung zum Auftrag</label><textarea id="orderNote" placeholder="Hinweis nur für diesen Auftrag"></textarea></div>
     </div>
     <div class="button-row">
       <button class="btn btn-primary" onclick="saveNewOrder()">Auftrag speichern</button>
@@ -3227,7 +3240,7 @@ html.mobile-device .topbar.hirmer-header-v35 {
       <div class="form-group"><label>PLZ</label><input id="customerZip"></div>
       <div class="form-group"><label>Ort</label><input id="customerCity"></div>
       <div class="form-group full"><label>Telefon</label><input id="customerPhone"></div>
-      <div class="form-group full"><label>Bemerkung</label><textarea id="customerNote"></textarea></div>
+      <div class="form-group full"><label>Kundenhinweis / Besonderheiten</label><textarea id="customerNote" placeholder="z. B. mittwochs keine Lieferung, vor Lieferung anrufen …"></textarea></div>
     </div>
     <div class="button-row">
       <button class="btn btn-primary" onclick="saveCustomerForm()">Speichern</button>
@@ -3240,8 +3253,8 @@ html.mobile-device .topbar.hirmer-header-v35 {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=134"></script>
-<script src="api.js?v=134"></script>
+<script src="config.js?v=135"></script>
+<script src="api.js?v=135"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -4740,6 +4753,10 @@ function clearOrderForm() {
     .forEach(function(id) { document.getElementById(id).value = ''; });
 
   document.getElementById('orderCustomerSelect').value = '';
+  const customerHint = document.getElementById('orderCustomerHint');
+  const customerHintGroup = document.getElementById('orderCustomerHintGroup');
+  if(customerHint) customerHint.value = '';
+  if(customerHintGroup) customerHintGroup.style.display = 'none';
   document.getElementById('orderProduct').value = 'Normal';
   document.getElementById('orderDate').value = getTodayInputValue();
   updateOrderPricePreview();
@@ -5111,16 +5128,26 @@ function renderCustomerSelect() {
 
 function selectOrderCustomer() {
   const id = value('orderCustomerSelect');
-  if (!id) return;
-
   const customer = APP.customers.find(function(item) { return item.id === id; });
-  if (!customer) return;
+
+  const hintField = document.getElementById('orderCustomerHint');
+  const hintGroup = document.getElementById('orderCustomerHintGroup');
+
+  if (!customer) {
+    if(hintField) hintField.value = '';
+    if(hintGroup) hintGroup.style.display = 'none';
+    return;
+  }
 
   document.getElementById('orderCustomer').value = customer.name || '';
   document.getElementById('orderStreet').value = customer.street || '';
   document.getElementById('orderZip').value = customer.zip || '';
   document.getElementById('orderCity').value = customer.city || '';
   document.getElementById('orderPhone').value = customer.phone || '';
+
+  const customerHint = String(customer.note || '').trim();
+  if(hintField) hintField.value = customerHint;
+  if(hintGroup) hintGroup.style.display = customerHint ? '' : 'none';
 }
 
 function openCustomerModal(customerId) {
@@ -5391,7 +5418,19 @@ function renderPrices() {
     return;
   }
 
-  (APP.prices || []).slice().reverse().forEach(function(price, index) {
+  function priceDateValue_(value){
+    const text = String(value || '').trim();
+    const de = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if(de){
+      return new Date(Number(de[3]), Number(de[2]) - 1, Number(de[1])).getTime();
+    }
+    const parsed = Date.parse(text);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
+  (APP.prices || []).slice().sort(function(a,b){
+    return priceDateValue_(b.date) - priceDateValue_(a.date);
+  }).forEach(function(price, index) {
     const tr = document.createElement('tr');
     if (index === 0) tr.classList.add('current-price-row');
 
@@ -5965,7 +6004,7 @@ async function v79RefreshAll_(){
   setLoading(true);
 
   try{
-    // V134: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
+    // V135: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
     // Das reduziert gleichzeitige Serverzugriffe und stabilisiert Tank/LKW.
     const coreData =
       await v134ReadWithRetry_(
@@ -6392,7 +6431,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V134';
+    el.textContent = 'Heizöl Hirmer · V135';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6426,7 +6465,7 @@ function toggleNewPasswordVisibility(inputId, button){
         event.preventDefault();
         event.stopPropagation();
 
-        /* V134: cloneNode kopiert keine per addEventListener registrierten
+        /* V135: cloneNode kopiert keine per addEventListener registrierten
            Click-Handler. Daher den originalen Navigationsbutton auslösen. */
         button.click();
 
@@ -6438,7 +6477,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V134: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V135: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6513,7 +6552,7 @@ extra.dataset.built = '1';
 
 <script>
 /* ============================================================
-   V134 – Frontend-Update-Mechanismus
+   V135 – Frontend-Update-Mechanismus
    Prüft bei jedem Start version.js mit Cache-Busting.
    Bei neuer Version: Browser-Caches löschen, Service Worker
    aktualisieren und genau einmal mit Cache-Buster neu laden.
@@ -6612,7 +6651,7 @@ extra.dataset.built = '1';
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    var header = document.getElementById('hirmerDesktopHeaderV134');
+    var header = document.getElementById('hirmerDesktopHeaderV135');
     if (!header) return;
     header.addEventListener('click', v130GoDashboard);
     header.addEventListener('keydown', function(e){
