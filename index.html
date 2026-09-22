@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="hirmer-build" content="142">
+  <meta name="hirmer-build" content="143">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- V142: ein einziger, geräteunabhängiger Update-Bootstrap -->
+  <!-- V143: ein einziger, geräteunabhängiger Update-Bootstrap -->
   <script>
   (function(){
-    var CURRENT='142';
+    var CURRENT='143';
     var ONCE='hirmer_v138_reload_';
 
     function getLatest(){
@@ -86,7 +86,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V142</title>
+  <title>Heizöl Hirmer – V143</title>
 
   <script>
     (function() {
@@ -2532,7 +2532,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V142 – Versionsanzeige mobil größer */
+/* V143 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2542,7 +2542,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V142 – Versionsanzeige auf Mobile deutlich größer */
+/* V143 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2556,7 +2556,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V142 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V143 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2569,23 +2569,23 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V142 – der tatsächlich sichtbare Abmelde-Button */
+/* V143 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V142 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V143 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
 
 
-/* V142 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
-#hirmerDesktopHeaderV142 { display:none; }
+/* V143 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
+#hirmerDesktopHeaderV143 { display:none; }
 
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV142 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV143 {
     display:block;
     width:100%;
     height:350px;
@@ -2604,15 +2604,15 @@ html.mobile-device #hirmerLogoutButton {
 }
 
 
-/* V142 – Desktop-Header als Home-Link */
+/* V143 – Desktop-Header als Home-Link */
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV142 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV143 {
     cursor: pointer;
   }
 }
 
 
-/* V142 – auch Mobile-Header als Home-Link */
+/* V143 – auch Mobile-Header als Home-Link */
 html.mobile-device .topbar.hirmer-header-v35 {
   cursor: pointer;
 }
@@ -2651,7 +2651,7 @@ html.mobile-device .topbar.hirmer-header-v35 {
 
 
 <style id="hirmer-v142-mobile-orders">
-/* V142 – Aufträge mobil kompakt und zeilenweise.
+/* V143 – Aufträge mobil kompakt und zeilenweise.
    Desktop bleibt vollständig unverändert. */
 html.mobile-device #page-orders #ordersTableBody tr {
   position: relative !important;
@@ -2826,16 +2826,77 @@ html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
 .mobile-order-product-inline { display:none; }
 html.mobile-device .mobile-order-product-inline { display:inline; }
 </style>
+
+<style id="hirmer-v143-mobile-orders-compact">
+/* V143 – Aufträge mobil etwas kompakter, damit Werte häufiger in einer Zeile bleiben */
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-date {
+  font-size: 25px !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-status .status {
+  font-size: 19px !important;
+  min-width: 94px !important;
+  padding: 6px 10px !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-row {
+  grid-template-columns: 27% 73% !important;
+  gap: 6px !important;
+  padding: 5px 0 !important;
+  font-size: 21px !important;
+  line-height: 1.2 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-row::before {
+  font-size: 19px !important;
+  line-height: 1.2 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-row strong,
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-row a {
+  font-size: 21px !important;
+  line-height: 1.2 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-liters {
+  grid-template-columns: 54% 46% !important;
+  gap: 5px !important;
+  padding: 5px 0 !important;
+  font-size: 21px !important;
+  line-height: 1.2 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-liters::before {
+  font-size: 19px !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-price {
+  padding: 5px 0 5px 5px !important;
+  font-size: 21px !important;
+  line-height: 1.2 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-price::before {
+  font-size: 21px !important;
+  margin-right: 4px !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.customer-hint-cell .order-hint-display {
+  font-size: 21px !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.customer-hint-cell .order-hint-edit-btn {
+  min-height: 42px !important;
+  padding: 6px 10px !important;
+  font-size: 18px !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
+  min-height: 48px !important;
+  padding: 8px 13px !important;
+  font-size: 19px !important;
+}
+</style>
+
 </head>
 
 <body class="auth-locked">
-<div id="hirmerDesktopHeaderV142" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
+<div id="hirmerDesktopHeaderV143" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
 
 <script>
 (function(){
   try{
     const url =
-      'config.js?v=142' +
+      'config.js?v=143' +
       Date.now();
 
     fetch(url, {
@@ -3426,8 +3487,8 @@ html.mobile-device .mobile-order-product-inline { display:inline; }
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=142"></script>
-<script src="api.js?v=142"></script>
+<script src="config.js?v=143"></script>
+<script src="api.js?v=143"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6240,7 +6301,7 @@ async function v79RefreshAll_(){
   setLoading(true);
 
   try{
-    // V142: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
+    // V143: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
     // Das reduziert gleichzeitige Serverzugriffe und stabilisiert Tank/LKW.
     const coreData =
       await v134ReadWithRetry_(
@@ -6667,7 +6728,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V142';
+    el.textContent = 'Heizöl Hirmer · V143';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6701,7 +6762,7 @@ function toggleNewPasswordVisibility(inputId, button){
         event.preventDefault();
         event.stopPropagation();
 
-        /* V142: cloneNode kopiert keine per addEventListener registrierten
+        /* V143: cloneNode kopiert keine per addEventListener registrierten
            Click-Handler. Daher den originalen Navigationsbutton auslösen. */
         button.click();
 
@@ -6713,7 +6774,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V142: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V143: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6802,7 +6863,7 @@ extra.dataset.built = '1';
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    var header = document.getElementById('hirmerDesktopHeaderV142');
+    var header = document.getElementById('hirmerDesktopHeaderV143');
     if (!header) return;
     header.addEventListener('click', v130GoDashboard);
     header.addEventListener('keydown', function(e){
