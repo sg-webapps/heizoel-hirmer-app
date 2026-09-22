@@ -1,126 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-  <meta name="hirmer-build" content="137">
-  <!-- V137: direkte Prüfung der aktuellen index.html -->
+  <meta name="hirmer-build" content="138">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+
+  <!-- V138: ein einziger, geräteunabhängiger Update-Bootstrap -->
   <script>
   (function(){
-    var CURRENT='137';
-    var RELOAD_KEY='hirmer_html_reload_'+CURRENT;
+    var CURRENT='138';
+    var ONCE='hirmer_v138_reload_';
 
-    function extractBuild(text){
-      var m=text.match(/<meta\s+name=["']hirmer-build["']\s+content=["']([^"']+)["']/i);
-      return m ? String(m[1]) : '';
-    }
-
-    function cleanFrontendCaches(){
-      var jobs=[];
-      if('caches' in window){
-        jobs.push(caches.keys().then(function(keys){
-          return Promise.all(keys.map(function(k){ return caches.delete(k); }));
-        }).catch(function(){}));
-      }
-      if('serviceWorker' in navigator){
-        jobs.push(navigator.serviceWorker.getRegistrations().then(function(regs){
-          return Promise.all(regs.map(function(r){ return r.unregister().catch(function(){}); }));
-        }).catch(function(){}));
-      }
-      return Promise.all(jobs);
-    }
-
-    /* Die aktuelle GitHub-index.html direkt vom Netz anfordern.
-       Der Zeitstempel erzeugt jedes Mal eine neue URL. */
-    var probe='index.html?_hirmer_probe='+Date.now();
-
-    fetch(probe,{cache:'no-store',credentials:'same-origin'})
+    function getLatest(){
+      return fetch(
+        'version.js?_hirmer_check=' + Date.now(),
+        {cache:'no-store', credentials:'same-origin'}
+      )
       .then(function(r){
-        if(!r.ok) throw new Error('update probe failed');
+        if(!r.ok) throw new Error('version check failed');
         return r.text();
       })
       .then(function(text){
-        var latest=extractBuild(text);
-        if(!latest || latest===CURRENT) {
-          sessionStorage.removeItem(RELOAD_KEY);
-          return;
-        }
+        var m=text.match(/HIRMER_LATEST_VERSION\s*=\s*["']([^"']+)["']/);
+        return m ? String(m[1]) : '';
+      });
+    }
 
-        if(sessionStorage.getItem(RELOAD_KEY)==='1') return;
-        sessionStorage.setItem(RELOAD_KEY,'1');
-
-        cleanFrontendCaches().finally(function(){
-          var u=new URL(location.href);
-          u.searchParams.set('_hirmer_v',latest);
-          u.searchParams.set('_hirmer_reload',Date.now().toString());
-          location.replace(u.toString());
-        });
-      })
-      .catch(function(){});
-  })();
-  </script>
-
-
-  <!-- V137: robuster Update-Bootstrap ganz am Anfang -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <script>
-  (function(){
-    var CURRENT='137', PREFIX='hirmer_update_once_';
-
-    function cleanup(){
+    function clearOnlyThisSiteCaches(){
       var jobs=[];
+
       if('caches' in window){
-        jobs.push(caches.keys().then(function(keys){
-          return Promise.all(keys.map(function(k){return caches.delete(k);}));
-        }).catch(function(){}));
+        jobs.push(
+          caches.keys().then(function(keys){
+            return Promise.all(
+              keys.map(function(key){
+                return caches.delete(key);
+              })
+            );
+          }).catch(function(){})
+        );
       }
+
       if('serviceWorker' in navigator){
-        jobs.push(navigator.serviceWorker.getRegistrations().then(function(regs){
-          return Promise.all(regs.map(function(reg){
-            return reg.unregister().catch(function(){});
-          }));
-        }).catch(function(){}));
+        jobs.push(
+          navigator.serviceWorker.getRegistrations().then(function(regs){
+            return Promise.all(
+              regs.map(function(reg){
+                return reg.unregister().catch(function(){});
+              })
+            );
+          }).catch(function(){})
+        );
       }
+
       return Promise.all(jobs);
     }
 
-    function reloadTo(latest){
-      var key=PREFIX+latest;
+    function reloadVersion(latest){
+      var key=ONCE + latest;
       if(sessionStorage.getItem(key)==='1') return;
+
       sessionStorage.setItem(key,'1');
-      cleanup().finally(function(){
+
+      clearOnlyThisSiteCaches().finally(function(){
         var u=new URL(location.href);
-        u.searchParams.set('v',latest);
-        u.searchParams.set('_update',Date.now().toString());
+        u.searchParams.set('_hirmer_version',latest);
+        u.searchParams.set('_hirmer_time',Date.now().toString());
         location.replace(u.toString());
       });
     }
 
-    fetch('version.js?_='+Date.now(),{
-      cache:'no-store',
-      credentials:'same-origin'
-    })
-    .then(function(r){
-      if(!r.ok) throw new Error('version check failed');
-      return r.text();
-    })
-    .then(function(text){
-      var m=text.match(/HIRMER_LATEST_VERSION\s*=\s*["']([^"']+)["']/);
-      var latest=m?String(m[1]):'';
-      if(latest && latest!==CURRENT) reloadTo(latest);
-    })
-    .catch(function(){});
+    getLatest()
+      .then(function(latest){
+        if(latest && latest!==CURRENT){
+          reloadVersion(latest);
+        }
+      })
+      .catch(function(){
+        /* Netz kurz nicht erreichbar: App normal weiterverwenden. */
+      });
   })();
   </script>
 
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V137</title>
+  <title>Heizöl Hirmer – V138</title>
 
   <script>
     (function() {
@@ -2566,7 +2532,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V137 – Versionsanzeige mobil größer */
+/* V138 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2576,7 +2542,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V137 – Versionsanzeige auf Mobile deutlich größer */
+/* V138 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2590,7 +2556,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V137 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V138 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2603,23 +2569,23 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V137 – der tatsächlich sichtbare Abmelde-Button */
+/* V138 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V137 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V138 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
 
 
-/* V137 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
-#hirmerDesktopHeaderV137 { display:none; }
+/* V138 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
+#hirmerDesktopHeaderV138 { display:none; }
 
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV137 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV138 {
     display:block;
     width:100%;
     height:350px;
@@ -2638,15 +2604,15 @@ html.mobile-device #hirmerLogoutButton {
 }
 
 
-/* V137 – Desktop-Header als Home-Link */
+/* V138 – Desktop-Header als Home-Link */
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV137 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV138 {
     cursor: pointer;
   }
 }
 
 
-/* V137 – auch Mobile-Header als Home-Link */
+/* V138 – auch Mobile-Header als Home-Link */
 html.mobile-device .topbar.hirmer-header-v35 {
   cursor: pointer;
 }
@@ -2682,13 +2648,13 @@ html.mobile-device .topbar.hirmer-header-v35 {
 </head>
 
 <body class="auth-locked">
-<div id="hirmerDesktopHeaderV137" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
+<div id="hirmerDesktopHeaderV138" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
 
 <script>
 (function(){
   try{
     const url =
-      'config.js?v=137' +
+      'config.js?v=138' +
       Date.now();
 
     fetch(url, {
@@ -3279,8 +3245,8 @@ html.mobile-device .topbar.hirmer-header-v35 {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=137"></script>
-<script src="api.js?v=137"></script>
+<script src="config.js?v=138"></script>
+<script src="api.js?v=138"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -6093,7 +6059,7 @@ async function v79RefreshAll_(){
   setLoading(true);
 
   try{
-    // V137: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
+    // V138: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
     // Das reduziert gleichzeitige Serverzugriffe und stabilisiert Tank/LKW.
     const coreData =
       await v134ReadWithRetry_(
@@ -6520,7 +6486,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V137';
+    el.textContent = 'Heizöl Hirmer · V138';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6554,7 +6520,7 @@ function toggleNewPasswordVisibility(inputId, button){
         event.preventDefault();
         event.stopPropagation();
 
-        /* V137: cloneNode kopiert keine per addEventListener registrierten
+        /* V138: cloneNode kopiert keine per addEventListener registrierten
            Click-Handler. Daher den originalen Navigationsbutton auslösen. */
         button.click();
 
@@ -6566,7 +6532,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V137: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V138: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6639,92 +6605,7 @@ extra.dataset.built = '1';
 </script>
 
 
-<script>
-/* ============================================================
-   V137 – Frontend-Update-Mechanismus
-   Prüft bei jedem Start version.js mit Cache-Busting.
-   Bei neuer Version: Browser-Caches löschen, Service Worker
-   aktualisieren und genau einmal mit Cache-Buster neu laden.
-   Lokale App-Daten/Snapshots bleiben unangetastet.
-   ============================================================ */
-(function () {
-  const CURRENT_VERSION = '118';
-  const STORAGE_KEY = 'hirmer_frontend_version';
 
-  function v118ClearFrontendCaches_() {
-    const jobs = [];
-
-    if ('caches' in window) {
-      jobs.push(
-        caches.keys().then(function(keys) {
-          return Promise.all(keys.map(function(key) {
-            return caches.delete(key);
-          }));
-        }).catch(function(){})
-      );
-    }
-
-    if ('serviceWorker' in navigator) {
-      jobs.push(
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-          return Promise.all(regs.map(function(reg) {
-            return reg.update().catch(function(){});
-          }));
-        }).catch(function(){})
-      );
-    }
-
-    return Promise.all(jobs);
-  }
-
-  function v118ReloadOnce_(version) {
-    const marker = 'hirmer_reload_' + version;
-    if (sessionStorage.getItem(marker) === '1') return;
-
-    sessionStorage.setItem(marker, '1');
-    localStorage.setItem(STORAGE_KEY, String(version));
-
-    v118ClearFrontendCaches_().finally(function() {
-      const url = new URL(window.location.href);
-      url.searchParams.set('_hv', String(version));
-      url.searchParams.set('_ht', String(Date.now()));
-      window.location.replace(url.toString());
-    });
-  }
-
-  function v118CheckForUpdate_() {
-    const script = document.createElement('script');
-    script.src = 'version.js?_=' + Date.now();
-    script.async = true;
-
-    script.onload = function() {
-      const latest = String(window.HIRMER_LATEST_VERSION || '');
-      const known = String(localStorage.getItem(STORAGE_KEY) || '');
-
-      if (latest && latest !== CURRENT_VERSION) {
-        v118ReloadOnce_(latest);
-        return;
-      }
-
-      if (known !== CURRENT_VERSION) {
-        localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
-      }
-    };
-
-    script.onerror = function() {
-      /* Offline/Netzfehler: App normal weiterlaufen lassen. */
-    };
-
-    document.head.appendChild(script);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', v118CheckForUpdate_);
-  } else {
-    v118CheckForUpdate_();
-  }
-})();
-</script>
 
 
 
@@ -6740,7 +6621,7 @@ extra.dataset.built = '1';
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    var header = document.getElementById('hirmerDesktopHeaderV137');
+    var header = document.getElementById('hirmerDesktopHeaderV138');
     if (!header) return;
     header.addEventListener('click', v130GoDashboard);
     header.addEventListener('keydown', function(e){
