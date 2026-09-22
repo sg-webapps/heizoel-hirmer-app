@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="hirmer-build" content="141">
+  <meta name="hirmer-build" content="142">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- V141: ein einziger, geräteunabhängiger Update-Bootstrap -->
+  <!-- V142: ein einziger, geräteunabhängiger Update-Bootstrap -->
   <script>
   (function(){
-    var CURRENT='141';
+    var CURRENT='142';
     var ONCE='hirmer_v138_reload_';
 
     function getLatest(){
@@ -86,7 +86,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V141</title>
+  <title>Heizöl Hirmer – V142</title>
 
   <script>
     (function() {
@@ -2532,7 +2532,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V141 – Versionsanzeige mobil größer */
+/* V142 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2542,7 +2542,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V141 – Versionsanzeige auf Mobile deutlich größer */
+/* V142 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2556,7 +2556,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V141 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V142 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2569,23 +2569,23 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V141 – der tatsächlich sichtbare Abmelde-Button */
+/* V142 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V141 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V142 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
 
 
-/* V141 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
-#hirmerDesktopHeaderV141 { display:none; }
+/* V142 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
+#hirmerDesktopHeaderV142 { display:none; }
 
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV141 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV142 {
     display:block;
     width:100%;
     height:350px;
@@ -2604,15 +2604,15 @@ html.mobile-device #hirmerLogoutButton {
 }
 
 
-/* V141 – Desktop-Header als Home-Link */
+/* V142 – Desktop-Header als Home-Link */
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV141 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV142 {
     cursor: pointer;
   }
 }
 
 
-/* V141 – auch Mobile-Header als Home-Link */
+/* V142 – auch Mobile-Header als Home-Link */
 html.mobile-device .topbar.hirmer-header-v35 {
   cursor: pointer;
 }
@@ -2648,46 +2648,194 @@ html.mobile-device .topbar.hirmer-header-v35 {
 
 
 
-<style id="hirmer-v141-mobile-order-divider">
-/* V141 – klare optische Trennung der Aufträge NUR mobil */
+
+
+<style id="hirmer-v142-mobile-orders">
+/* V142 – Aufträge mobil kompakt und zeilenweise.
+   Desktop bleibt vollständig unverändert. */
 html.mobile-device #page-orders #ordersTableBody tr {
   position: relative !important;
-  margin-bottom: 30px !important;
-  padding-bottom: 24px !important;
-  border-bottom: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  background: #fff !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 0 20px 0 !important;
+  margin: 0 0 26px 0 !important;
   overflow: visible !important;
 }
 
-/* Die Linie sitzt außerhalb der einzelnen Datenfelder und trennt
-   den kompletten Auftrag vom nächsten Auftrag. */
+/* Klare Abschlusslinie zwischen zwei Aufträgen */
 html.mobile-device #page-orders #ordersTableBody tr::after {
   content: "" !important;
-  display: block !important;
   position: absolute !important;
   left: 0 !important;
   right: 0 !important;
-  bottom: -15px !important;
+  bottom: -3px !important;
   height: 4px !important;
-  background: #cfcfcf !important;
-  border-radius: 2px !important;
+  background: #c9c9c9 !important;
 }
 
-/* Beim nächsten Auftrag etwas Luft oberhalb lassen. */
-html.mobile-device #page-orders #ordersTableBody tr + tr {
-  margin-top: 10px !important;
+/* Grundformat der Datenzeilen */
+html.mobile-device #page-orders #ordersTableBody td {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+}
+
+/* Lieferdatum links oben */
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-date {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  display: block !important;
+  padding: 8px 8px 9px 0 !important;
+  border: 0 !important;
+  font-size: 30px !important;
+  font-weight: 900 !important;
+  color: #b40000 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-date::before {
+  display: none !important;
+}
+
+/* Status rechts oben */
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-status {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  padding: 5px 0 8px 8px !important;
+  border: 0 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-status::before {
+  display: none !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-status .status {
+  font-size: 23px !important;
+  min-width: 110px !important;
+  padding: 8px 12px !important;
+  border-radius: 18px !important;
+}
+
+/* Normale Informationszeilen über volle Breite */
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-row {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: 31% 69% !important;
+  gap: 8px !important;
+  align-items: start !important;
+  padding: 7px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid #dedede !important;
+  font-size: 25px !important;
+  line-height: 1.25 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-row::before {
+  content: attr(data-label) !important;
+  display: block !important;
+  font-size: 23px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+  line-height: 1.25 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-row strong,
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-row a {
+  font-size: 25px !important;
+  line-height: 1.25 !important;
+}
+
+/* Sorte wird in der mobilen Ansicht in die Mengen-/Preiszeile integriert:
+   eigene Sorte-Zeile ausblenden, der Wert steht bei Liter in Klammern. */
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-product {
+  display: none !important;
+}
+
+/* Liter + Preis bilden gemeinsam eine einzige sichtbare Zeile */
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-liters {
+  grid-column: 1 !important;
+  display: grid !important;
+  grid-template-columns: 62% 38% !important;
+  gap: 8px !important;
+  padding: 7px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid #dedede !important;
+  font-size: 25px !important;
+  line-height: 1.25 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-liters::before {
+  content: "Menge / Preis" !important;
+  font-size: 23px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-price {
+  grid-column: 2 !important;
+  display: block !important;
+  padding: 7px 0 7px 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #dedede !important;
+  font-size: 25px !important;
+  line-height: 1.25 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-price::before {
+  content: " | " !important;
+  display: inline !important;
+  font-size: 25px !important;
+  font-weight: 400 !important;
+  color: #555 !important;
+  margin-right: 7px !important;
+}
+
+/* Kundenhinweis kompakt, aber weiterhin rot/fett */
+html.mobile-device #page-orders #ordersTableBody td.customer-hint-cell .order-hint-display {
+  margin: 0 !important;
+  font-size: 25px !important;
+  font-weight: 800 !important;
+  color: #b40000 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.customer-hint-cell .order-hint-edit-btn {
+  margin-top: 7px !important;
+  min-height: 48px !important;
+  padding: 7px 12px !important;
+  font-size: 20px !important;
+}
+
+/* Aktionen rechts unten, ohne zusätzliche Beschriftung */
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions {
+  grid-column: 1 / -1 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  padding: 10px 0 0 0 !important;
+  border: 0 !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions::before {
+  display: none !important;
+}
+html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
+  flex: 0 0 auto !important;
+  min-height: 54px !important;
+  padding: 9px 15px !important;
+  font-size: 21px !important;
+  margin: 0 !important;
 }
 </style>
 
+<style id="hirmer-v142-product-inline">
+.mobile-order-product-inline { display:none; }
+html.mobile-device .mobile-order-product-inline { display:inline; }
+</style>
 </head>
 
 <body class="auth-locked">
-<div id="hirmerDesktopHeaderV141" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
+<div id="hirmerDesktopHeaderV142" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
 
 <script>
 (function(){
   try{
     const url =
-      'config.js?v=141' +
+      'config.js?v=142' +
       Date.now();
 
     fetch(url, {
@@ -3278,8 +3426,8 @@ html.mobile-device #page-orders #ordersTableBody tr + tr {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=141"></script>
-<script src="api.js?v=141"></script>
+<script src="config.js?v=142"></script>
+<script src="api.js?v=142"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -4461,20 +4609,20 @@ function renderOrders() {
 
     const tr = document.createElement('tr');
     tr.innerHTML =
-      '<td data-label="Lieferdatum" class="' + deliveryClass + '">' + escapeHtml(order.deliveryDate || '') + '</td>' +
-      '<td data-label="Kunde"><strong>' + escapeHtml(order.customer || '') + '</strong></td>' +
-      '<td data-label="Adresse">' + escapeHtml(address) + '</td>' +
-      '<td data-label="Telefon">' + phone + '</td>' +
-      '<td data-label="Sorte">' + escapeHtml(order.product || '') + '</td>' +
-      '<td data-label="Liter">' + formatLiters(order.liters || 0) + '</td>' +
-      '<td data-label="Preis / 100 L">' + formatMoney100(order.salePrice || 0) + '</td>' +
-      '<td data-label="Kundenhinweis" class="customer-hint-cell">' +
+      '<td data-label="Lieferdatum" class="order-mobile-date ' + deliveryClass + '">' + escapeHtml(order.deliveryDate || '') + '</td>' +
+      '<td data-label="Kunde" class="order-mobile-row"><strong>' + escapeHtml(order.customer || '') + '</strong></td>' +
+      '<td data-label="Adresse" class="order-mobile-row">' + escapeHtml(address) + '</td>' +
+      '<td data-label="Telefon" class="order-mobile-row">' + phone + '</td>' +
+      '<td data-label="Sorte" class="order-mobile-product">' + escapeHtml(order.product || '') + '</td>' +
+      '<td data-label="Liter" class="order-mobile-liters"><span>' + formatLiters(order.liters || 0) + '<span class="mobile-order-product-inline"> (' + escapeHtml(order.product || '') + ')</span></span></td>' +
+      '<td data-label="Preis / 100 L" class="order-mobile-price">' + formatMoney100(order.salePrice || 0) + '</td>' +
+      '<td data-label="Kundenhinweis" class="customer-hint-cell order-mobile-row">' +
         '<div class="order-hint-display">' + escapeHtml(order.customerHint || '') + '</div>' +
         '<button class="btn btn-secondary btn-small order-hint-edit-btn" onclick="openOrderHintModal(\'' + safeJs(order.id) + '\')">Bearbeiten</button>' +
       '</td>' +
-      '<td data-label="Bemerkung Auftrag">' + escapeHtml(order.note || '') + '</td>' +
-      '<td data-label="Status"><span class="status ' + statusClass + '">' + escapeHtml(status) + '</span></td>' +
-      '<td data-label="Aktion">' + actions + '</td>';
+      '<td data-label="Bemerkung" class="order-mobile-row">' + escapeHtml(order.note || '') + '</td>' +
+      '<td data-label="Status" class="order-mobile-status"><span class="status ' + statusClass + '">' + escapeHtml(status) + '</span></td>' +
+      '<td data-label="Aktion" class="order-mobile-actions">' + actions + '</td>';
 
     body.appendChild(tr);
   });
@@ -6092,7 +6240,7 @@ async function v79RefreshAll_(){
   setLoading(true);
 
   try{
-    // V141: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
+    // V142: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
     // Das reduziert gleichzeitige Serverzugriffe und stabilisiert Tank/LKW.
     const coreData =
       await v134ReadWithRetry_(
@@ -6519,7 +6667,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V141';
+    el.textContent = 'Heizöl Hirmer · V142';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6553,7 +6701,7 @@ function toggleNewPasswordVisibility(inputId, button){
         event.preventDefault();
         event.stopPropagation();
 
-        /* V141: cloneNode kopiert keine per addEventListener registrierten
+        /* V142: cloneNode kopiert keine per addEventListener registrierten
            Click-Handler. Daher den originalen Navigationsbutton auslösen. */
         button.click();
 
@@ -6565,7 +6713,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V141: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V142: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6654,7 +6802,7 @@ extra.dataset.built = '1';
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    var header = document.getElementById('hirmerDesktopHeaderV141');
+    var header = document.getElementById('hirmerDesktopHeaderV142');
     if (!header) return;
     header.addEventListener('click', v130GoDashboard);
     header.addEventListener('keydown', function(e){
