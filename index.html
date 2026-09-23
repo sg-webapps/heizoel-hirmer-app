@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="hirmer-build" content="143">
+  <meta name="hirmer-build" content="144">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- V143: ein einziger, geräteunabhängiger Update-Bootstrap -->
+  <!-- V144: ein einziger, geräteunabhängiger Update-Bootstrap -->
   <script>
   (function(){
-    var CURRENT='143';
+    var CURRENT='144';
     var ONCE='hirmer_v138_reload_';
 
     function getLatest(){
@@ -86,7 +86,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Heizöl Hirmer – V143</title>
+  <title>Heizöl Hirmer – V144</title>
 
   <script>
     (function() {
@@ -2532,7 +2532,7 @@ html.mobile-device #logoutButton {
 
 html.mobile-device .main-nav { position: sticky !important; }
 
-/* V143 – Versionsanzeige mobil größer */
+/* V144 – Versionsanzeige mobil größer */
 html.mobile-device footer,
 html.mobile-device .footer,
 html.mobile-device #footer,
@@ -2542,7 +2542,7 @@ html.mobile-device [class*="footer"] {
 }
 
 
-/* V143 – Versionsanzeige auf Mobile deutlich größer */
+/* V144 – Versionsanzeige auf Mobile deutlich größer */
 html.mobile-device .app-footer,
 html.mobile-device footer,
 html.mobile-device .footer,
@@ -2556,7 +2556,7 @@ html.mobile-device [class*="version"] {
 
 
 
-/* V143 – Abmelden mobil ausschließlich im Burger-Menü */
+/* V144 – Abmelden mobil ausschließlich im Burger-Menü */
 html.mobile-device button[onclick*="logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device button[onclick*="Logout"]:not(#v111MobileExtraMenu button),
 html.mobile-device a[onclick*="logout"]:not(#v111MobileExtraMenu a),
@@ -2569,23 +2569,23 @@ html.mobile-device #logoutButton {
 }
 
 
-/* V143 – der tatsächlich sichtbare Abmelde-Button */
+/* V144 – der tatsächlich sichtbare Abmelde-Button */
 html.mobile-device #authLogoutBtn {
   display: none !important;
 }
 
 
-/* V143 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
+/* V144 – tatsächlichen dynamischen Logout-Button mobil ausblenden */
 html.mobile-device #hirmerLogoutButton {
   display: none !important;
 }
 
 
-/* V143 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
-#hirmerDesktopHeaderV143 { display:none; }
+/* V144 – Panorama ausschließlich Desktop; Mobile-Header unverändert */
+#hirmerDesktopHeaderV144 { display:none; }
 
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV143 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV144 {
     display:block;
     width:100%;
     height:350px;
@@ -2604,15 +2604,15 @@ html.mobile-device #hirmerLogoutButton {
 }
 
 
-/* V143 – Desktop-Header als Home-Link */
+/* V144 – Desktop-Header als Home-Link */
 @media (min-width: 769px) {
-  html:not(.mobile-device) #hirmerDesktopHeaderV143 {
+  html:not(.mobile-device) #hirmerDesktopHeaderV144 {
     cursor: pointer;
   }
 }
 
 
-/* V143 – auch Mobile-Header als Home-Link */
+/* V144 – auch Mobile-Header als Home-Link */
 html.mobile-device .topbar.hirmer-header-v35 {
   cursor: pointer;
 }
@@ -2651,7 +2651,7 @@ html.mobile-device .topbar.hirmer-header-v35 {
 
 
 <style id="hirmer-v142-mobile-orders">
-/* V143 – Aufträge mobil kompakt und zeilenweise.
+/* V144 – Aufträge mobil kompakt und zeilenweise.
    Desktop bleibt vollständig unverändert. */
 html.mobile-device #page-orders #ordersTableBody tr {
   position: relative !important;
@@ -2828,7 +2828,7 @@ html.mobile-device .mobile-order-product-inline { display:inline; }
 </style>
 
 <style id="hirmer-v143-mobile-orders-compact">
-/* V143 – Aufträge mobil etwas kompakter, damit Werte häufiger in einer Zeile bleiben */
+/* V144 – Aufträge mobil etwas kompakter, damit Werte häufiger in einer Zeile bleiben */
 html.mobile-device #page-orders #ordersTableBody td.order-mobile-date {
   font-size: 25px !important;
 }
@@ -2887,16 +2887,20 @@ html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
 }
 </style>
 
+<style id="hirmer-v144-customer-number">
+html.mobile-device #page-orders #ordersTableBody td[data-label="Kundennr."] { font-weight:700 !important; }
+html.mobile-device #page-customers #customersTableBody td[data-label="Kundennr."] { font-weight:800 !important; }
+</style>
 </head>
 
 <body class="auth-locked">
-<div id="hirmerDesktopHeaderV143" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
+<div id="hirmerDesktopHeaderV144" role="link" tabindex="0" aria-label="Zum Dashboard" title="Zum Dashboard"></div>
 
 <script>
 (function(){
   try{
     const url =
-      'config.js?v=143' +
+      'config.js?v=144' +
       Date.now();
 
     fetch(url, {
@@ -3084,7 +3088,7 @@ html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
       <table>
         <thead>
           <tr>
-            <th>Lieferdatum</th><th>Kunde</th><th>Adresse</th><th>Telefon</th>
+            <th>Lieferdatum</th><th>Kunde</th><th>Kundennr.</th><th>Adresse</th><th>Telefon</th>
             <th>Sorte</th><th>Liter</th><th>Preis / 100 L</th><th>Kundenhinweis</th><th>Bemerkung Auftrag</th><th>Status</th><th>Aktion</th>
           </tr>
         </thead>
@@ -3105,6 +3109,7 @@ html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
         </select>
       </div>
       <div class="form-group full"><label>Kunde</label><input id="orderCustomer" type="text"></div>
+      <div class="form-group"><label>Kundennummer</label><input id="orderCustomerNumber" type="text" readonly></div>
       <div class="form-group"><label>Lieferdatum</label><input id="orderDate" type="date"></div>
       <div class="form-group">
         <label>Heizölsorte</label>
@@ -3163,7 +3168,7 @@ html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
   <div class="panel">
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Name</th><th>Adresse</th><th>Telefon</th><th>Kundenhinweis</th><th>Aktion</th></tr></thead>
+        <thead><tr><th>Kundennr.</th><th>Name</th><th>Adresse</th><th>Telefon</th><th>Kundenhinweis</th><th>Aktion</th></tr></thead>
         <tbody id="customersTableBody"></tbody>
       </table>
     </div>
@@ -3469,6 +3474,7 @@ html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
     <h2>Kunde</h2>
     <input id="customerId" type="hidden">
     <div class="form-grid">
+      <div class="form-group"><label>Kundennummer</label><input id="customerNumber" placeholder="manuell vergeben"></div>
       <div class="form-group full"><label>Name</label><input id="customerName"></div>
       <div class="form-group full"><label>Straße</label><input id="customerStreet"></div>
       <div class="form-group"><label>PLZ</label><input id="customerZip"></div>
@@ -3487,8 +3493,8 @@ html.mobile-device #page-orders #ordersTableBody td.order-mobile-actions .btn {
 <div id="toast" class="toast"></div>
 
 
-<script src="config.js?v=143"></script>
-<script src="api.js?v=143"></script>
+<script src="config.js?v=144"></script>
+<script src="api.js?v=144"></script>
 
 <script>
 const HIRMER_AUTH_LOCAL_KEY = 'hirmer_v72_auth_local';
@@ -4649,7 +4655,7 @@ function renderOrders() {
   body.innerHTML = '';
 
   if (!APP.orders.length) {
-    body.innerHTML = '<tr><td colspan="11">Keine Aufträge vorhanden.</td></tr>';
+    body.innerHTML = '<tr><td colspan="12">Keine Aufträge vorhanden.</td></tr>';
     return;
   }
 
@@ -4672,6 +4678,7 @@ function renderOrders() {
     tr.innerHTML =
       '<td data-label="Lieferdatum" class="order-mobile-date ' + deliveryClass + '">' + escapeHtml(order.deliveryDate || '') + '</td>' +
       '<td data-label="Kunde" class="order-mobile-row"><strong>' + escapeHtml(order.customer || '') + '</strong></td>' +
+      '<td data-label="Kundennr." class="order-mobile-row">' + escapeHtml(order.customerNumber || '') + '</td>' +
       '<td data-label="Adresse" class="order-mobile-row">' + escapeHtml(address) + '</td>' +
       '<td data-label="Telefon" class="order-mobile-row">' + phone + '</td>' +
       '<td data-label="Sorte" class="order-mobile-product">' + escapeHtml(order.product || '') + '</td>' +
@@ -4916,6 +4923,7 @@ function saveNewOrder() {
   const order = {
     id: v73CreateOrderId_(),
     customer: value('orderCustomer'),
+    customerNumber: value('orderCustomerNumber'),
     deliveryDate: value('orderDate'),
     street: value('orderStreet'),
     zip: value('orderZip'),
@@ -4989,7 +4997,7 @@ function saveNewOrder() {
 }
 
 function clearOrderForm() {
-  ['orderCustomer','orderStreet','orderZip','orderCity','orderPhone','orderLiters','orderPrice','orderNote']
+  ['orderCustomer','orderCustomerNumber','orderStreet','orderZip','orderCity','orderPhone','orderLiters','orderPrice','orderNote']
     .forEach(function(id) { document.getElementById(id).value = ''; });
 
   document.getElementById('orderCustomerSelect').value = '';
@@ -5380,7 +5388,7 @@ function renderCustomers() {
   body.innerHTML = '';
 
   if (!APP.customers.length) {
-    body.innerHTML = '<tr><td colspan="5">Keine Kunden vorhanden.</td></tr>';
+    body.innerHTML = '<tr><td colspan="6">Keine Kunden vorhanden.</td></tr>';
     return;
   }
 
@@ -5389,6 +5397,7 @@ function renderCustomers() {
     const tr = document.createElement('tr');
 
     tr.innerHTML =
+      '<td data-label="Kundennr."><strong>' + escapeHtml(customer.customerNumber || '') + '</strong></td>' +
       '<td data-label="Name"><strong>' + escapeHtml(customer.name || '') + '</strong></td>' +
       '<td data-label="Adresse">' + escapeHtml(address) + '</td>' +
       '<td data-label="Telefon">' +
@@ -5416,7 +5425,9 @@ function renderCustomerSelect() {
     .forEach(function(customer) {
       const option = document.createElement('option');
       option.value = customer.id;
-      option.textContent = customer.name;
+      option.textContent = customer.customerNumber
+        ? customer.customerNumber + ' – ' + customer.name
+        : customer.name;
       select.appendChild(option);
     });
 
@@ -5431,12 +5442,14 @@ function selectOrderCustomer() {
   const hintGroup = document.getElementById('orderCustomerHintGroup');
 
   if (!customer) {
+    document.getElementById('orderCustomerNumber').value = '';
     if(hintField) hintField.value = '';
     if(hintGroup) hintGroup.style.display = 'none';
     return;
   }
 
   document.getElementById('orderCustomer').value = customer.name || '';
+  document.getElementById('orderCustomerNumber').value = customer.customerNumber || '';
   document.getElementById('orderStreet').value = customer.street || '';
   document.getElementById('orderZip').value = customer.zip || '';
   document.getElementById('orderCity').value = customer.city || '';
@@ -5453,6 +5466,7 @@ function openCustomerModal(customerId) {
     : null;
 
   document.getElementById('customerId').value = customer ? customer.id : '';
+  document.getElementById('customerNumber').value = customer ? (customer.customerNumber || '') : '';
   document.getElementById('customerName').value = customer ? customer.name : '';
   document.getElementById('customerStreet').value = customer ? customer.street : '';
   document.getElementById('customerZip').value = customer ? customer.zip : '';
@@ -5470,6 +5484,7 @@ function closeCustomerModal() {
 function saveCustomerForm() {
   const customer = {
     id: value('customerId'),
+    customerNumber: value('customerNumber'),
     name: value('customerName'),
     street: value('customerStreet'),
     zip: value('customerZip'),
@@ -5983,11 +5998,12 @@ function downloadDeliveredOrdersCsv() {
 }
 
 function exportCustomersCsv() {
-  const rows = [['ID','Name','Straße','PLZ','Ort','Telefon','Bemerkung']];
+  const rows = [['ID','Kundennummer','Name','Straße','PLZ','Ort','Telefon','Bemerkung']];
 
   APP.customers.forEach(function(customer) {
     rows.push([
       customer.id || '',
+      customer.customerNumber || '',
       customer.name || '',
       customer.street || '',
       customer.zip || '',
@@ -6301,7 +6317,7 @@ async function v79RefreshAll_(){
   setLoading(true);
 
   try{
-    // V143: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
+    // V144: bewusst nacheinander statt drei Apps-Script-Aufrufe parallel.
     // Das reduziert gleichzeitige Serverzugriffe und stabilisiert Tank/LKW.
     const coreData =
       await v134ReadWithRetry_(
@@ -6728,7 +6744,7 @@ function toggleNewPasswordVisibility(inputId, button){
       el.style.display = 'none';
       return;
     }
-    el.textContent = 'Heizöl Hirmer · V143';
+    el.textContent = 'Heizöl Hirmer · V144';
     el.style.cssText =
       'display:block;text-align:center;padding:18px 8px 28px;' +
       'font:800 22px/1.35 Arial,Helvetica,sans-serif;color:#555;' +
@@ -6762,7 +6778,7 @@ function toggleNewPasswordVisibility(inputId, button){
         event.preventDefault();
         event.stopPropagation();
 
-        /* V143: cloneNode kopiert keine per addEventListener registrierten
+        /* V144: cloneNode kopiert keine per addEventListener registrierten
            Click-Handler. Daher den originalen Navigationsbutton auslösen. */
         button.click();
 
@@ -6774,7 +6790,7 @@ function toggleNewPasswordVisibility(inputId, button){
       extra.appendChild(clone);
     });
 
-    /* V143: Abmelden ausschließlich als eigener Burger-Menüpunkt */
+    /* V144: Abmelden ausschließlich als eigener Burger-Menüpunkt */
     if (!extra.querySelector('.v121-mobile-logout')) {
       var mobileLogout = document.createElement('button');
       mobileLogout.type = 'button';
@@ -6863,7 +6879,7 @@ extra.dataset.built = '1';
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    var header = document.getElementById('hirmerDesktopHeaderV143');
+    var header = document.getElementById('hirmerDesktopHeaderV144');
     if (!header) return;
     header.addEventListener('click', v130GoDashboard);
     header.addEventListener('keydown', function(e){
